@@ -6,8 +6,6 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
 
-import io.github.cdimascio.dotenv.Dotenv;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,21 +19,16 @@ public class FirebaseConfig {
     
     @Bean
     public Firestore firestore() throws IOException {
-        Dotenv dotenv = Dotenv.load();
-        String serviceAccountPath = dotenv.get("FIRESTORE_APPLICATION_CREDENTIALS");
-        if (serviceAccountPath == null || serviceAccountPath.isEmpty()) {
-            throw new IOException("The path to the service account key file is not set.");
-        }
-
-        InputStream serviceAccount = new FileInputStream(serviceAccountPath);
+        FileInputStream serviceAccount = new FileInputStream(".env");
+        
 
         FirebaseOptions options = new FirebaseOptions.Builder()
             .setCredentials(GoogleCredentials.fromStream(serviceAccount))
             .build();
 
-        if (FirebaseApp.getApps().isEmpty()) { // check if existing apps are already initialized
-            FirebaseApp.initializeApp(options);
-        }
+            if (FirebaseApp.getApps().isEmpty()) { // check with existing apps are already initialized
+                FirebaseApp.initializeApp(options);
+                }
         return FirestoreClient.getFirestore();
     }
 }
