@@ -103,10 +103,19 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${SSH_USER}@${SSH_HOST} "
             mkdir -p /home/${SSH_USER}/app &&
-            cd /home/${SSH_USER}/app
-            ./gradlew bootRun &
+            cd /home/${SSH_USER}/app &&
+            if [ -f gradlew ]; then
+              chmod +x gradlew
+              ./gradlew bootRun
+            else
+              echo 'gradlew not found'
+            fi &&
+            if [ -f /home/${SSH_USER}/app/*.jar ]; then
+              java -jar /home/${SSH_USER}/app/*.jar
+            else
+              echo 'Jar file not found'
+            fi
           "
-          java -jar /home/${SSH_USER}/app/*.jar
 
           sleep 10  # Short pause to ensure app is up
           curl https://${{ secrets.SSH_HOST }}:8080/
