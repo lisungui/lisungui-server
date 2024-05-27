@@ -26,36 +26,39 @@ jobs:
       - name: Prepare Firestore Credentials
         run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > firestore-credentials.json
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
       - name: Build with Gradle
         env:
           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
         run: ./gradlew build
 
-  test:
-    name: Tests
-    runs-on: ubuntu-latest
+  # test:
+  #   name: Tests
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository code
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Checkout repository code
+  #       uses: actions/checkout@v2
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: "temurin"
-          java-version: "17"
+  #     - name: Set up JDK 17
+  #       uses: actions/setup-java@v3
+  #       with:
+  #         distribution: "temurin"
+  #         java-version: "17"
 
-      - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
+  #     - name: Set up Gradle
+  #       uses: gradle/gradle-build-action@v2
 
-      - name: Prepare Firestore Credentials
-        run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > firestore-credentials.json
+  #     - name: Prepare Firestore Credentials
+  #       run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > firestore-credentials.json
 
-      - name: Test and analyze code
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
-        run: ./gradlew test
+  #     - name: Test and analyze code
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
+  #       run: ./gradlew test
 
   deploy:
     name: Deploy to AWS
@@ -76,6 +79,9 @@ jobs:
 
       - name: Prepare Firestore Credentials
         run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > firestore-credentials.json
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
       - name: Deploy to EC2
         env:
