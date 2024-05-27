@@ -83,6 +83,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: Ensure target directory exists
+        run: ssh -o StrictHostKeyChecking=no -i lisungui-server.pem ${SSH_USER}@${SSH_HOST} "mkdir -p /home/ec2-user/app"
+
       - name: Deploy to EC2
         env:
           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
