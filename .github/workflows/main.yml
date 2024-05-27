@@ -61,14 +61,14 @@ jobs:
   #       run: ./gradlew test
 
   deploy:
-    name: Deploy to AWS
+    name: Deploy to AWS EC2
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v2
 
-      - name: Set up JDK 17
+      - name: Install Java 17
         uses: actions/setup-java@v3
         with:
           distribution: "temurin"
@@ -97,6 +97,6 @@ jobs:
           chmod 600 lisungui-server.pem
           ssh -o StrictHostKeyChecking=no -i lisungui-server.pem ${SSH_USER}@${SSH_HOST} "
             mkdir -p /home/ec2-user/app &&
-            cd /home/ec2-user/app &&
-            ./gradlew bootRun
+            cd /home/ec2-user/app
           "
+          ./gradlew bootRun
