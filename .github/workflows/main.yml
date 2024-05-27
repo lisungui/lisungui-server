@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - echo Installing backend dependencies...
+      - ./gradlew clean build --refresh-dependencies
+
+  build:
+    commands:
+      - echo Building backend...
+      - ./gradlew build
+
+artifacts:
+  files:
+    - build/libs/*.jar
+  discard-paths: yes
+
+cache:
+  paths:
+    - 'build/libs/**/*'
+    - '.gradle/**/*'
