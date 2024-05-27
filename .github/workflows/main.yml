@@ -100,6 +100,9 @@ jobs:
       #       echo FIRESTORE_APPLICATION_CREDENTIALS=\$(echo ${{ secrets.ENCODED_FIRESTORE_CREDENTIALS }} | base64 --decode) > /home/${{ secrets.SSH_USER }}/app/.env
           # "
 
+      - name: Grant execute permission for write_api_key.sh
+        run: chmod +x ./write_api_key.sh
+        
       - name: Write API Key to app.yaml
         run: ./write_api_key.sh
         env:
