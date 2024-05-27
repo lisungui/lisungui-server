@@ -1,4 +1,4 @@
-// package com.bizzy.skillbridge.service;
+package com.bizzy.skillbridge.service;
 
 // // public class UserServiceTest {
     
