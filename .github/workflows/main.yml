@@ -1,24 +1,92 @@
-version: 0.2
+name: CI/CD Pipeline AWS EC2
 
-phases:
-  install:
-    runtime-versions:
-      java: corretto11
-    commands:
-      - echo Installing backend dependencies...
-      - ./gradlew clean build --refresh-dependencies
+on:
+  push:
+    branches:
+      - main
 
+jobs:
   build:
-    commands:
-      - echo Building backend...
-      - ./gradlew build
+    name: Build
+    runs-on: ubuntu-latest
 
-artifacts:
-  files:
-    - build/libs/*.jar
-  discard-paths: yes
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
 
-cache:
-  paths:
-    - 'build/libs/**/*'
-    - '.gradle/**/*'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Prepare Firestore Credentials
+        run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > firestore-credentials.json
+
+      - name: Build with Gradle
+        env:
+          FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
+        run: ./gradlew build
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Prepare Firestore Credentials
+        run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > firestore-credentials.json
+
+      - name: Test and analyze code
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
+        run: ./gradlew test
+
+  deploy:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Prepare Firestore Credentials
+        run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > firestore-credentials.json
+
+      - name: Deploy to EC2
+        env:
+          FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          echo "${SSH_KEY}" > lisungui-server.pem
+          chmod 600 lisungui-server.pem
+          ssh -o StrictHostKeyChecking=no -i lisungui-server.pem ${SSH_USER}@${SSH_HOST} "
+            cd /home/ec2-user/app
+            ./gradlew bootRun
+          "
