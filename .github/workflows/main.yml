@@ -106,6 +106,7 @@ jobs:
             cd /home/ubuntu/app
           "
           ./gradlew bootRun
+          java -jar build/libs/*.jar
         
       # - name: Wait for Application to Start
       #   run: sleep 60  # Adjust the sleep duration based on your application startup time
