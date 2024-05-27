@@ -94,6 +94,12 @@ jobs:
         run: |
           chmod +x startup.sh
 
+      - name: Create .env file on the remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            echo FIRESTORE_APPLICATION_CREDENTIALS=\$(echo ${{ secrets.ENCODED_FIRESTORE_CREDENTIALS }} | base64 --decode) > /home/${{ secrets.SSH_USER }}/app/.env
+          "
+
       - name: Deploy to EC2
         env:
           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
