@@ -83,9 +83,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: Write SSH key
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > lisungui-server.pem
+          chmod 600 lisungui-server.pem
+
       # - name: Ensure target directory exists
       #   run: ssh -o StrictHostKeyChecking=no -i lisungui-server.pem ${SSH_USER}@${SSH_HOST} "mkdir -p /home/ec2-user/app"
-
+      - name: Copy files to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui-server.pem -r ./* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+          
       - name: Deploy to EC2
         env:
           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
@@ -93,8 +101,6 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
-          echo "${SSH_KEY}" > lisungui-server.pem
-          chmod 600 lisungui-server.pem
           ssh -o StrictHostKeyChecking=no -i lisungui-server.pem ${SSH_USER}@${SSH_HOST} "
             mkdir -p /home/ec2-user/app &&
             cd /home/ec2-user/app
