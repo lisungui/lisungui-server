@@ -93,7 +93,7 @@ jobs:
       - name: Copy files to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i lisungui-server.pem -r ./* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
-          
+
       - name: Deploy to EC2
         env:
           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
@@ -106,3 +106,6 @@ jobs:
             cd /home/ec2-user/app
           "
           ./gradlew bootRun
+
+      - name: Test
+        run: curl "${{ steps.deploy.outputs.url }}"
