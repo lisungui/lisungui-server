@@ -106,3 +106,10 @@ jobs:
             cd /home/ec2-user/app
           "
           ./gradlew bootRun
+        
+      - name: Wait for Application to Start
+        run: sleep 60  # Adjust the sleep duration based on your application startup time
+  
+      - name: Check Application Status
+        run: |
+          curl http://${{ secrets.SSH_HOST }}
