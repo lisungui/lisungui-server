@@ -112,4 +112,4 @@ jobs:
   
       - name: Check Application Status
         run: |
-          curl http://${{ secrets.SSH_HOST }}:22
+          curl http://${{ secrets.SSH_HOST }}
