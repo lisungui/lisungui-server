@@ -37,9 +37,7 @@ jobs:
           echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
           chmod 600 lisungui_server_key.pem
 
-      - name: Copy jar file to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+      
 
   deploy:
     name: Deploy to AWS EC2
@@ -84,6 +82,10 @@ jobs:
             echo 'FIRESTORE_APPLICATION_CREDENTIALS=/home/${{ secrets.SSH_USER }}/app/accountKey.json' > /home/${{ secrets.SSH_USER }}/app/.env
           "
 
+      - name: Copy jar file to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+
       - name: Deploy to EC2
         env:
           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
@@ -97,7 +99,7 @@ jobs:
           "
 
       - name: Wait for the application to start
-        run: sleep 15
+        run: sleep 10
 
       - name: Health Check
         run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
