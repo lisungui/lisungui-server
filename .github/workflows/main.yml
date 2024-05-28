@@ -96,8 +96,8 @@ jobs:
 
       - name: Copy startup.sh to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i server_key.pem ./startup.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
-          ssh -o StrictHostKeyChecking=no -i server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x /home/${{ secrets.SSH_USER }}/app/startup.sh"
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./startup.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x /home/${{ secrets.SSH_USER }}/app/startup.sh"
 
       - name: Deploy to EC2 instance
         env:
