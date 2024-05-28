@@ -18,7 +18,7 @@ public class WebConfig {
 
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:3000"); // Frontend URL
+        configuration.addAllowedOrigin("http://lisungui-client.s3-website.eu-north-1.amazonaws.com/"); // Frontend URL
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
