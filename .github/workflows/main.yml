@@ -30,16 +30,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew clean build
-
-      - name: List root directory contents
-        run: ls -la
-
-      - name: List build directory contents
-        run: ls -la ./build
-
-      - name: List libs directory contents
-        run: ls -la ./build/libs/
+        run: ./gradlew build
 
       - name: Set up SSH key
         run: |
