@@ -32,15 +32,6 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build
 
-      # - name: Write SSH key
-      #   run: |
-      #     echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
-      #     chmod 600 lisungui_server_key.pem
-
-      # - name: Copy jar file to EC2
-      #   run: |
-      #     scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*-SNAPSHOT.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
-
   deploy:
     name: Deploy to AWS EC2
     runs-on: ubuntu-latest
@@ -108,13 +99,8 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
             cd /home/${{ secrets.SSH_USER }}/app &&
-            ./startup.sh &
+            nohup ./startup.sh > startup.log 2>&1 &
           "
-          
-
-
-      # - name: Wait for the application to start
-      #   run: sleep 0
 
       - name: Health Check
         run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
