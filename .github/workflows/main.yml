@@ -30,16 +30,16 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew clean bootJar
+        run: ./gradlew clean build
 
-      - name: Write SSH key
-        run: |
-          echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
-          chmod 600 lisungui_server_key.pem
+      # - name: Write SSH key
+      #   run: |
+      #     echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
+      #     chmod 600 lisungui_server_key.pem
 
-      - name: Copy jar file to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*-SNAPSHOT.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+      # - name: Copy jar file to EC2
+      #   run: |
+      #     scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*-SNAPSHOT.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
 
   deploy:
     name: Deploy to AWS EC2
@@ -87,6 +87,16 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean bootJar
 
+      - name: Permission to startup.sh
+        run: chmod +x startup.sh
+
+      - name: Build with Gradle
+        run: ./gradlew clean bootJar
+
+      - name: Copy jar file to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*-SNAPSHOT.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+
       - name: Deploy to EC2 instance
         env:
           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
@@ -96,11 +106,12 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
             cd /home/${{ secrets.SSH_USER }}/app &&
-            java -jar *.jar > app.log 2>&1 &
           "
+          startup.sh
 
-      - name: Wait for the application to start
-        run: sleep 60
+
+      # - name: Wait for the application to start
+      #   run: sleep 0
 
       - name: Health Check
         run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
