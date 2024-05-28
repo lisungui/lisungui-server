@@ -30,7 +30,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build  
+        run: ./gradlew clean bootJar
 
       - name: Write SSH key
         run: |
@@ -87,7 +87,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean bootJar
 
-      - name: Deploy to EC2
+      - name: Deploy to EC2 instance
         env:
           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
