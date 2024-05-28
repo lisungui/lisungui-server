@@ -37,9 +37,6 @@ jobs:
           echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
           chmod 600 lisungui_server_key.pem
 
-      - name: List all files in ./build/libs
-        run: ls -la ./build/libs/
-
       - name: Copy jar file to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
@@ -100,7 +97,7 @@ jobs:
           "
 
       - name: Wait for the application to start
-        run: sleep 10
+        run: sleep 20
 
       - name: Health Check
         run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
