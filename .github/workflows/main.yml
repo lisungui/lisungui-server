@@ -30,9 +30,20 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        env:
-          FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
-        run: ./gradlew build
+        run: ./gradlew clean build
+
+      - name: List root directory contents
+        run: ls -la
+
+      - name: List build directory contents
+        run: ls -la ./build
+
+      - name: List libs directory contents
+        run: ls -la ./build/libs/
+
+      - name: Copy jar file to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
 
   deploy:
     name: Deploy to AWS EC2
@@ -64,13 +75,6 @@ jobs:
 
       - name: Ensure target directory exists
         run: ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/app"
-
-      - name: List build directory contents
-        run: ls -la ./build/libs/
-
-      - name: Copy jar file to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
 
       - name: Create Firestore credentials JSON file on the remote server
         run: |
