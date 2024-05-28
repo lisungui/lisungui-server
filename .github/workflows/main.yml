@@ -30,12 +30,15 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew clean bootJar
 
       - name: Set up SSH key
         run: |
           echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
           chmod 600 lisungui_server_key.pem
+
+      - name: List all files in ./build/libs
+        run: ls -la ./build/libs/
 
       - name: Copy jar file to EC2
         run: |
