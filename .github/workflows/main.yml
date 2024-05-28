@@ -100,7 +100,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
             cd /home/${{ secrets.SSH_USER }}/app &&
             nohup ./startup.sh > startup.log 2>&1 &
-          "
+          " || exit 0
 
       - name: Health Check
         run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
