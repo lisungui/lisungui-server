@@ -90,8 +90,7 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-            cd /home/${{ secrets.SSH_USER }}/app &&
-            java -jar *.jar > app.log 2>&1 &
+            cd /home/${{ secrets.SSH_USER }}/app &
           "
 
       - name: Wait for the application to start
