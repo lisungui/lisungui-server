@@ -88,7 +88,7 @@ jobs:
         run: ./gradlew clean bootJar
 
       - name: Permission to startup.sh
-        run: chmod +x startup.sh
+        run: chmod +x ./startup.sh
 
       - name: Build with Gradle
         run: ./gradlew clean bootJar
@@ -106,8 +106,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
             cd /home/${{ secrets.SSH_USER }}/app &&
+            ./startup.sh &
           "
-          startup.sh
+          
 
 
       # - name: Wait for the application to start
