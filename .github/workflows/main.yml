@@ -65,9 +65,9 @@ jobs:
       - name: Ensure target directory exists
         run: ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/app"
 
-      - name: Copy files to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+      # - name: Copy files to EC2
+        # run: |
+        #   scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
 
       - name: Create Firestore credentials JSON file on the remote server
         run: |
