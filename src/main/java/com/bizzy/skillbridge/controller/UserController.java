@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.bizzy.skillbridge.entity.Gig;
 import com.bizzy.skillbridge.entity.User;
+import com.bizzy.skillbridge.rest.dto.GigGetDTO;
+import com.bizzy.skillbridge.rest.dto.GigPostDTO;
 import com.bizzy.skillbridge.rest.dto.UserPostDTO;
 import com.bizzy.skillbridge.rest.mapper.DTOMapper;
 import com.bizzy.skillbridge.service.UserService;
@@ -76,6 +79,27 @@ public class UserController {
         }
     }
 
+    @PostMapping("/gigs/{uid}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
+    public void createFreelanceUser(@PathVariable String uid, @RequestBody GigPostDTO gigPostDTO) throws Exception{
+        userService.createGig(uid, gigPostDTO);
+    }
+
+    @GetMapping("/listgigs/{uid}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseEntity<List<Gig>> getGigs(@PathVariable String uid) {
+        try {
+            List<Gig> gigs = userService.getGigs(uid);
+            return new ResponseEntity<>(gigs, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // Return 500 for unexpected errors
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No gigs found or could not retrieve gigs", e);
+        }
+    }
+
     @PutMapping("/users/freelance/{uid}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
@@ -86,6 +110,18 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create freelancer user");
         } else {
             return ResponseEntity.ok(freelancer);
+        }
+    }
+
+    @PutMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseEntity<User> updateUser(@PathVariable String id, @RequestBody UserPostDTO userPostDTO) throws Exception{
+        User user = userService.updateUser(id, userPostDTO);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to update user");
+        } else {
+            return ResponseEntity.ok(user);
         }
     }
 
