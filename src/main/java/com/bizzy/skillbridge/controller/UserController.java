@@ -92,8 +92,8 @@ public class UserController {
     @GetMapping("/users/{id}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseEntity<UserRecord> getUser(@PathVariable String id) throws Exception{
-        UserRecord user = userService.getUserRecord(id);
+    public ResponseEntity<User> getUser(@PathVariable String id) throws Exception{
+        User user = userService.getUserRecord(id);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         } else {

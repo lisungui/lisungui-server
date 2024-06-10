@@ -70,9 +70,9 @@ public class UserService {
     public User createFreelanceUser(String uid){
         try {
             User user = new User();
-            UserRecord userRecord = getUserRecord(uid);
+            User userRecord = getUserRecord(uid);
             String email = userRecord.getEmail();
-            String fullname = userRecord.getDisplayName();
+            String fullname = userRecord.getFullName();
             if (userExists(email)) {
                 user.setEmail(email);
                 return user;
@@ -88,6 +88,7 @@ public class UserService {
             user.setEmail(email);
             user.setRole("freelancer");
             user.setId(uid);
+            user.setPicture(userRecord.getPicture());
             DocumentReference newUserRef = db.collection("users").document(uid);
             WriteResult writeResult = newUserRef.set(user).get();
             return user;
@@ -100,7 +101,7 @@ public class UserService {
 
     public User updateFreelanceUser(String uid, User user){
         try {
-            UserRecord userRecord = getUserRecord(uid);
+            User userRecord = getUserRecord(uid);
             User updatedUser = getUserByEmail(userRecord.getEmail());
             if (user.getLastName().isEmpty() || user.getFirstName() == null ) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "First name is required");
@@ -156,10 +157,25 @@ public class UserService {
         }
     }
 
-    public UserRecord getUserRecord(String uid) {
+    public User getUserRecord(String uid) {
         try {
             UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
-            return userRecord;
+            boolean userExists = userExists(userRecord.getEmail());
+            if (!userExists) {
+                User user = new User();
+                user.setEmail(userRecord.getEmail());
+                user.setPicture(userRecord.getPhotoUrl());
+                user.setId(uid);
+                user.setFullName(userRecord.getDisplayName());
+                user.setUserToken(UUID.randomUUID().toString());
+                DocumentReference newUserRef = db.collection("users").document(uid);
+                WriteResult writeResult = newUserRef.set(user).get();
+                return user;
+            } else {
+                User user = db.collection("users").document(uid).get().get().toObject(User.class);
+                return user;
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to get user record", e);
         }
@@ -185,6 +201,17 @@ public class UserService {
             return querySnapshot.toObjects(User.class);
         } catch (Exception e) {
             throw new RuntimeException("Failed to get all users", e);
+        }
+    }
+
+    public User updatUser(User user) {
+        try {
+            User userRecord = getUserRecord(user.getId());
+            DocumentReference userRef = db.collection("users").document(user.getId());
+            WriteResult writeResult = userRef.set(user).get();
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update user", e);
         }
     }
 

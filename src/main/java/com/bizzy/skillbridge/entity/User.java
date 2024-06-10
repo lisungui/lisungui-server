@@ -14,6 +14,7 @@ public class User {
     private int rating;
     private String firstName;
     private String lastName;
+    private String fullName;
     private String phone;
     private String address;
     private String city;
@@ -24,6 +25,7 @@ public class User {
     private String role;
     private UserStatus status;
     private String createdDate;
+    private String picture;
     private Date birthDay;
     private List<String> skills;
     private List<String> interests;
@@ -45,6 +47,7 @@ public class User {
 
 
 
+
     public User() {
     }
 
@@ -62,12 +65,28 @@ public class User {
         this.id = id;
     }
 
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
     public String getUsername() {
         return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getPassword() {
