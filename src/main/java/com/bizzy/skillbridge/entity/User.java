@@ -1,5 +1,6 @@
 package com.bizzy.skillbridge.entity;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import com.bizzy.skillbridge.constant.UserStatus;
@@ -44,6 +45,7 @@ public class User {
     private List<String> organizations;
     private List<String> volunteer;
     private List<String> languagesSpoken;
+    private List<Message> messages = new ArrayList<>();
 
 
 
@@ -363,5 +365,49 @@ public class User {
         for (String interest : interests) {
             this.interests.add(interest);
         }
+    }
+
+    public void addLanguages(List<String> languages) {
+        for (String language : languages) {
+            this.languages.add(language);
+        }
+    }
+
+    public void addCertifications(List<String> certifications) {
+        for (String certification : certifications) {
+            this.certifications.add(certification);
+        }
+    }
+
+    public void addEducation(List<String> education) {
+        for (String edu : education) {
+            this.education.add(edu);
+        }
+    }
+
+    public void addExperience(List<String> experience) {
+        for (String exp : experience) {
+            this.experience.add(exp);
+        }
+    }
+
+    public void addProjects(List<String> projects) {
+        for (String project : projects) {
+            this.projects.add(project);
+        }
+    }
+
+    public void addSocialLinks(List<String> socialLinks) {
+        for (String socialLink : socialLinks) {
+            this.socialLinks.add(socialLink);
+        }
+    }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
     }
 }

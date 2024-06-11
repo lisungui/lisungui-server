@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.bizzy.skillbridge.entity.Gig;
+import com.bizzy.skillbridge.entity.Message;
 import com.bizzy.skillbridge.entity.User;
 import com.bizzy.skillbridge.rest.dto.GigGetDTO;
 import com.bizzy.skillbridge.rest.dto.GigPostDTO;
+import com.bizzy.skillbridge.rest.dto.MessageDTO;
 import com.bizzy.skillbridge.rest.dto.UserPostDTO;
 import com.bizzy.skillbridge.rest.mapper.DTOMapper;
 import com.bizzy.skillbridge.service.UserService;
@@ -158,6 +160,27 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No users found");
         } else {
             return ResponseEntity.ok(users);
+        }
+    }
+
+    @PostMapping("/sendmessage")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
+    public void sendMessage(@RequestBody MessageDTO messageDTO) throws Exception{
+        userService.sendMessage(messageDTO);
+    }
+
+    @GetMapping("/messages/{uid}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseEntity<List<Message>> getMessages(@PathVariable String uid) {
+        try {
+            List<Message> messages = userService.getMessages(uid);
+            return new ResponseEntity<>(messages, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // Return 500 for unexpected errors
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No messages found or could not retrieve messages", e);
         }
     }
     

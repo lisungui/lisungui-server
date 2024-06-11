@@ -13,8 +13,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.bizzy.skillbridge.constant.UserStatus;
 import com.bizzy.skillbridge.entity.Gig;
+import com.bizzy.skillbridge.entity.Message;
 import com.bizzy.skillbridge.entity.User;
 import com.bizzy.skillbridge.rest.dto.GigPostDTO;
+import com.bizzy.skillbridge.rest.dto.MessageDTO;
 import com.bizzy.skillbridge.rest.dto.UserPostDTO;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
@@ -397,6 +399,87 @@ public class UserService {
             throw new RuntimeException("Failed to get user record", e);
         }
     }
+
+    public void sendMessage(MessageDTO messageDTO) {
+        try {
+            // Validate sender and recipient existence
+            User sender = getUserRecord(messageDTO.getSenderId());
+            User recipient = getUserRecord(messageDTO.getRecipientId());
+
+            // Create a new message object
+            Message newMessage = new Message();
+            newMessage.setId(messageDTO.getId());
+            newMessage.setSender(messageDTO.getSenderId());
+            newMessage.setContent(messageDTO.getContent());
+            newMessage.setTimestamp(messageDTO.getTimestamp());
+
+            // Update the sender's messages
+            DocumentReference senderRef = db.collection("users").document(sender.getId());
+            DocumentSnapshot senderSnapshot = senderRef.get().get();
+            if (senderSnapshot.exists()) {
+                if (sender.getMessages() == null) {
+                    sender.setMessages(new ArrayList<>());
+                }
+                List<Message> senderMessages = sender.getMessages();
+                senderMessages.add(newMessage);
+                sender.setMessages(senderMessages);
+                senderRef.set(sender).get();
+            }
+
+            // Update the recipient's messages
+            DocumentReference recipientRef = db.collection("users").document(recipient.getId());
+            DocumentSnapshot recipientSnapshot = recipientRef.get().get();
+            if (recipientSnapshot.exists()) {
+                if (recipient.getMessages() == null) {
+                    recipient.setMessages(new ArrayList<>());
+                }
+                List<Message> recipientMessages = recipient.getMessages();
+                recipientMessages.add(newMessage);
+                recipient.setMessages(recipientMessages);
+                recipientRef.set(recipient).get();
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send message", e);
+        }
+    }
+
+    public List<Message> getMessages(String uid) {
+        try {
+            // Reference to the user's message document
+            User user = getUserRecord(uid);
+            DocumentReference userMessageRef = db.collection("users").document(user.getId());
+    
+            // Fetch the document
+            ApiFuture<DocumentSnapshot> future = userMessageRef.get();
+            DocumentSnapshot document = future.get();
+    
+            if (document.exists() && document.contains("messages")) {
+                List<Map<String, Object>> messageMaps = (List<Map<String, Object>>) document.get("messages");
+                
+                if (messageMaps == null) {
+                    return new ArrayList<>(); // Return an empty list if there are no messages
+                }
+                // Convert the list of maps to a list of Message objects
+                List<Message> messages = new ArrayList<>();
+                for (Map<String, Object> messageMap : messageMaps) {
+                    Message message = new Message();
+                    message.setId(((Number) messageMap.get("id")).intValue());
+                    message.setSender((String) messageMap.get("sender"));
+                    message.setContent((String) messageMap.get("content"));
+                    message.setTimestamp((String) messageMap.get("timestamp")); // Convert to java.util.Date using toDate()
+                    messages.add(message);
+                }
+                return messages;
+            } else {
+                return new ArrayList<>();
+            }
+    
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get messages", e);
+        }
+    }
+
 
     private User getUserByEmail(String email) {
         try {
