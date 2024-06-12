@@ -2,16 +2,18 @@ package com.bizzy.skillbridge.entity;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.bizzy.skillbridge.constant.UserStatus;
-import java.util.List;
 
 public class User {
-    
     private String username;
     private String password;
     private String id;
     private String email;
+    private boolean verifiedEmail=false;
     private int rating;
     private String firstName;
     private String lastName;
@@ -28,27 +30,24 @@ public class User {
     private String createdDate;
     private String picture;
     private Date birthDay;
-    private List<String> skills;
-    private List<String> interests;
-    private List<String> languages;
-    private List<String> certifications;
-    private List<String> education;
-    private List<String> experience;
-    private List<String> projects;
-    private List<String> socialLinks;
-    private List<String> references;
-    private List<String> awards;
-    private List<String> publications;
-    private List<String> patents;
-    private List<String> courses;
-    private List<String> hobbies;
-    private List<String> organizations;
-    private List<String> volunteer;
-    private List<String> languagesSpoken;
-    private List<Message> messages = new ArrayList<>();
-
-
-
+    private List<String> skills = new ArrayList<>();
+    private List<String> interests = new ArrayList<>();
+    private List<String> languages = new ArrayList<>();
+    private List<String> certifications = new ArrayList<>();
+    private List<String> education = new ArrayList<>();
+    private List<String> experience = new ArrayList<>();
+    private List<String> projects = new ArrayList<>();
+    private List<String> socialLinks = new ArrayList<>();
+    private List<String> references = new ArrayList<>();
+    private List<String> awards = new ArrayList<>();
+    private List<String> publications = new ArrayList<>();
+    private List<String> patents = new ArrayList<>();
+    private List<String> courses = new ArrayList<>();
+    private List<String> hobbies = new ArrayList<>();
+    private List<String> organizations = new ArrayList<>();
+    private List<String> volunteer = new ArrayList<>();
+    private List<String> languagesSpoken = new ArrayList<>();
+    private Map<String, List<Message>> messages = new HashMap<>(); // Updated to Map
 
     public User() {
     }
@@ -59,12 +58,22 @@ public class User {
         this.password = password;
     }
 
+    // Getters and setters for the fields
+
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isVerifiedEmail() {
+        return verifiedEmail;
+    }
+
+    public void setVerifiedEmail(boolean verifiedEmail) {
+        this.verifiedEmail = verifiedEmail;
     }
 
     public String getPicture() {
@@ -356,58 +365,49 @@ public class User {
     }
 
     public void addSkills(List<String> skills) {
-        for (String skill : skills) {
-            this.skills.add(skill);
-        }
+        this.skills.addAll(skills);
     }
 
     public void addInterests(List<String> interests) {
-        for (String interest : interests) {
-            this.interests.add(interest);
-        }
+        this.interests.addAll(interests);
     }
 
     public void addLanguages(List<String> languages) {
-        for (String language : languages) {
-            this.languages.add(language);
-        }
+        this.languages.addAll(languages);
     }
 
     public void addCertifications(List<String> certifications) {
-        for (String certification : certifications) {
-            this.certifications.add(certification);
-        }
+        this.certifications.addAll(certifications);
     }
 
     public void addEducation(List<String> education) {
-        for (String edu : education) {
-            this.education.add(edu);
-        }
+        this.education.addAll(education);
     }
 
     public void addExperience(List<String> experience) {
-        for (String exp : experience) {
-            this.experience.add(exp);
-        }
+        this.experience.addAll(experience);
     }
 
     public void addProjects(List<String> projects) {
-        for (String project : projects) {
-            this.projects.add(project);
-        }
+        this.projects.addAll(projects);
     }
 
     public void addSocialLinks(List<String> socialLinks) {
-        for (String socialLink : socialLinks) {
-            this.socialLinks.add(socialLink);
-        }
+        this.socialLinks.addAll(socialLinks);
     }
 
-    public List<Message> getMessages() {
+    // Update the methods for messages to use Map
+
+    public Map<String, List<Message>> getMessages() {
         return messages;
     }
 
-    public void setMessages(List<Message> messages) {
+    public void setMessages(Map<String, List<Message>> messages) {
         this.messages = messages;
+    }
+
+    public void addMessage(String contactId, Message message) {
+        List<Message> contactMessages = this.messages.computeIfAbsent(contactId, k -> new ArrayList<>());
+        contactMessages.add(message);
     }
 }

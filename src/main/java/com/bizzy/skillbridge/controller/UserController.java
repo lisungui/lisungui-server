@@ -81,26 +81,6 @@ public class UserController {
         }
     }
 
-    @PostMapping("/gigs/{uid}")
-    @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
-    public void createFreelanceUser(@PathVariable String uid, @RequestBody GigPostDTO gigPostDTO) throws Exception{
-        userService.createGig(uid, gigPostDTO);
-    }
-
-    @GetMapping("/listgigs/{uid}")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ResponseEntity<List<Gig>> getGigs(@PathVariable String uid) {
-        try {
-            List<Gig> gigs = userService.getGigs(uid);
-            return new ResponseEntity<>(gigs, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // Return 500 for unexpected errors
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No gigs found or could not retrieve gigs", e);
-        }
-    }
 
     @PutMapping("/users/freelance/{uid}")
     @ResponseStatus(HttpStatus.OK)
@@ -173,9 +153,9 @@ public class UserController {
     @GetMapping("/messages/{uid}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseEntity<List<Message>> getMessages(@PathVariable String uid) {
+    public ResponseEntity<Map<String, List<Message>>> getMessages(@PathVariable String uid) {
         try {
-            List<Message> messages = userService.getMessages(uid);
+            Map<String, List<Message>> messages = userService.getMessages(uid);
             return new ResponseEntity<>(messages, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // Return 500 for unexpected errors

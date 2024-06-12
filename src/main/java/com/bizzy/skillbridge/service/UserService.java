@@ -27,6 +27,7 @@ import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.Timestamp;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -66,118 +67,6 @@ public class UserService {
         }
     }
 
-    public void createGig(String uid, GigPostDTO gigPostDTO) {
-        try {
-            // Validate the user existence (assuming getUserRecord validates this)
-            User user = getUserRecord(uid);
-    
-            // Validate the gig data
-            if (gigPostDTO.getTitle() == null || gigPostDTO.getTitle().isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Title is required");
-            }
-            if (gigPostDTO.getDescription() == null || gigPostDTO.getDescription().isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Description is required");
-            }
-            if (gigPostDTO.getCategory() == null || gigPostDTO.getCategory().isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category is required");
-            }
-            if (gigPostDTO.getPrice() <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price is required and must be greater than 0");
-            }
-            if (gigPostDTO.getDuration() <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Duration is required");
-            }
-    
-            // Create a new Gig instance from the DTO
-            Gig newGig = new Gig();
-            newGig.setId(UUID.randomUUID().toString()); // Generate a new unique ID for the gig
-            newGig.setUserCreator(uid);
-            newGig.setTitle(gigPostDTO.getTitle());
-            newGig.setDescription(gigPostDTO.getDescription());
-            newGig.setCategory(gigPostDTO.getCategory());
-            newGig.setPrice(gigPostDTO.getPrice());
-            newGig.setDuration(gigPostDTO.getDuration());
-            newGig.setStatus(gigPostDTO.getStatus());
-            newGig.setCreatedDate(new Date());
-    
-            // Reference to the 'gigs' collection
-            DocumentReference userGigRef = db.collection("gigs").document(uid);
-
-            ApiFuture<DocumentSnapshot> future = userGigRef.get();
-            DocumentSnapshot document = future.get();
-
-            // Initialize the gig list if not present
-            List<Map<String, Object>> existingGigs = new ArrayList<>();
-            if (document.exists() && document.contains("gigs")) {
-                existingGigs = (List<Map<String, Object>>) document.get("gigs");
-            }
-
-            // Convert the new gig to a map
-            Map<String, Object> newGigMap = new HashMap<>();
-            newGigMap.put("id", newGig.getId());
-            newGigMap.put("userCreator", newGig.getUserCreator());
-            newGigMap.put("title", newGig.getTitle());
-            newGigMap.put("description", newGig.getDescription());
-            newGigMap.put("category", newGig.getCategory());
-            newGigMap.put("price", newGig.getPrice());
-            newGigMap.put("duration", newGig.getDuration());
-            newGigMap.put("status", newGig.getStatus());
-            newGigMap.put("createdDate", newGig.getCreatedDate());
-    
-            existingGigs.add(newGigMap);
-
-            // Update the document with the new list of gigs
-            Map<String, Object> updateMap = new HashMap<>();
-            updateMap.put("gigs", existingGigs);
-
-        userGigRef.set(updateMap).get();
-    
-        } catch (ResponseStatusException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not create Gig: " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create gig", e);
-        }
-    }
-    
-
-    public List<Gig> getGigs(String uid) {
-        try {
-            // Reference to the user's gig document
-            User user = getUserRecord(uid);
-            DocumentReference userGigRef = db.collection("gigs").document(uid);
-    
-            // Fetch the document
-            ApiFuture<DocumentSnapshot> future = userGigRef.get();
-            DocumentSnapshot document = future.get();
-    
-            if (document.exists() && document.contains("gigs")) {
-                List<Map<String, Object>> gigMaps = (List<Map<String, Object>>) document.get("gigs");
-                
-                // Convert the list of maps to a list of Gig objects
-                List<Gig> gigs = new ArrayList<>();
-                for (Map<String, Object> gigMap : gigMaps) {
-                    Gig gig = new Gig();
-                    gig.setId((String) gigMap.get("id"));
-                    gig.setUserCreator((String) gigMap.get("userCreator"));
-                    gig.setTitle((String) gigMap.get("title"));
-                    gig.setDescription((String) gigMap.get("description"));
-                    gig.setCategory((String) gigMap.get("category"));
-                    gig.setPrice(((Number) gigMap.get("price")).floatValue()); // Convert to float
-                    gig.setDuration(((Number) gigMap.get("duration")).intValue());
-                    gig.setStatus((String) gigMap.get("status"));
-                    Timestamp timestamp = (Timestamp) gigMap.get("createdDate");
-                    gig.setCreatedDate(timestamp.toDate()); // Convert to java.util.Date using toDate()
-                    gigs.add(gig);
-                }
-                return gigs;
-            } else {
-                return new ArrayList<>();
-            }
-    
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to get gigs", e);
-        }
-    }
     
     public User updateUser(String uid, UserPostDTO userPostDTO) {
         try {
@@ -413,69 +302,102 @@ public class UserService {
             newMessage.setContent(messageDTO.getContent());
             newMessage.setTimestamp(messageDTO.getTimestamp());
 
-            // Update the sender's messages
+            // Update the sender's messages dictionary
             DocumentReference senderRef = db.collection("users").document(sender.getId());
-            DocumentSnapshot senderSnapshot = senderRef.get().get();
-            if (senderSnapshot.exists()) {
-                if (sender.getMessages() == null) {
-                    sender.setMessages(new ArrayList<>());
-                }
-                List<Message> senderMessages = sender.getMessages();
-                senderMessages.add(newMessage);
-                sender.setMessages(senderMessages);
-                senderRef.set(sender).get();
-            }
+            updateMessagesForUser(senderRef, messageDTO.getRecipientId(), newMessage);
 
-            // Update the recipient's messages
+            // Update the recipient's messages dictionary
             DocumentReference recipientRef = db.collection("users").document(recipient.getId());
-            DocumentSnapshot recipientSnapshot = recipientRef.get().get();
-            if (recipientSnapshot.exists()) {
-                if (recipient.getMessages() == null) {
-                    recipient.setMessages(new ArrayList<>());
-                }
-                List<Message> recipientMessages = recipient.getMessages();
-                recipientMessages.add(newMessage);
-                recipient.setMessages(recipientMessages);
-                recipientRef.set(recipient).get();
-            }
+            updateMessagesForUser(recipientRef, messageDTO.getSenderId(), newMessage);
 
-        } catch (Exception e) {
+        } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException("Failed to send message", e);
         }
     }
 
-    public List<Message> getMessages(String uid) {
+    private void updateMessagesForUser(DocumentReference userRef, String contactId, Message newMessage) throws ExecutionException, InterruptedException {
+        DocumentSnapshot userSnapshot = userRef.get().get();
+
+        if (userSnapshot.exists()) {
+            // Initialize the messages map
+            Map<String, List<Message>> messagesMap = new HashMap<>();
+
+            // Retrieve existing messages or initialize the structure if absent
+            Object messagesField = userSnapshot.get("messages");
+
+            if (messagesField instanceof Map) {
+                // It's already a Map, so we can cast and use it directly
+                messagesMap = (Map<String, List<Message>>) messagesField;
+            } else if (messagesField instanceof List) {
+                // It's a List, we need to convert it to a Map under a general key
+                List<Message> messagesList = (List<Message>) messagesField;
+                messagesMap.put("general", messagesList);
+            }
+
+            // Add the new message to the list for the specific contactId
+            List<Message> contactMessages = messagesMap.computeIfAbsent(contactId, k -> new ArrayList<>());
+            contactMessages.add(newMessage);
+
+            // Save the updated messages map back to Firestore
+            userRef.update("messages", messagesMap).get();
+        } else {
+            // If the document doesn't exist, create a new one with the messages structure
+            Map<String, List<Message>> messagesMap = new HashMap<>();
+            List<Message> contactMessages = new ArrayList<>();
+            contactMessages.add(newMessage);
+            messagesMap.put(contactId, contactMessages);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("messages", messagesMap);
+
+            userRef.set(data).get();
+        }
+    }
+
+    public Map<String, List<Message>> getMessages(String uid) {
         try {
-            // Reference to the user's message document
-            User user = getUserRecord(uid);
-            DocumentReference userMessageRef = db.collection("users").document(user.getId());
-    
+            // Reference to the user's document in the 'users' collection
+            DocumentReference userMessageRef = db.collection("users").document(uid);
+
             // Fetch the document
             ApiFuture<DocumentSnapshot> future = userMessageRef.get();
             DocumentSnapshot document = future.get();
-    
+
+            // Initialize an empty map to collect messages by contact ID
+            Map<String, List<Message>> messagesByContact = new HashMap<>();
+
             if (document.exists() && document.contains("messages")) {
-                List<Map<String, Object>> messageMaps = (List<Map<String, Object>>) document.get("messages");
-                
-                if (messageMaps == null) {
-                    return new ArrayList<>(); // Return an empty list if there are no messages
+                // Retrieve the messages map from Firestore
+                Map<String, List<Map<String, Object>>> messagesMap = (Map<String, List<Map<String, Object>>>) document.get("messages");
+
+                if (messagesMap != null) {
+                    // Iterate through the map entries
+                    for (Map.Entry<String, List<Map<String, Object>>> entry : messagesMap.entrySet()) {
+                        String contactId = entry.getKey();
+                        List<Map<String, Object>> messageMaps = entry.getValue();
+
+                        // Initialize a list to hold Message objects for this contact
+                        List<Message> messages = new ArrayList<>();
+
+                        // Convert each message map to a Message object
+                        for (Map<String, Object> messageMap : messageMaps) {
+                            Message message = new Message();
+                            message.setId(((Number) messageMap.get("id")).intValue());
+                            message.setSender((String) messageMap.get("sender"));
+                            message.setContent((String) messageMap.get("content"));
+                            message.setTimestamp((String) messageMap.get("timestamp"));
+                            // Add the message to the list for this contact
+                            messages.add(message);
+                        }
+
+                        // Add the list of messages to the map under the contact ID
+                        messagesByContact.put(contactId, messages);
+                    }
                 }
-                // Convert the list of maps to a list of Message objects
-                List<Message> messages = new ArrayList<>();
-                for (Map<String, Object> messageMap : messageMaps) {
-                    Message message = new Message();
-                    message.setId(((Number) messageMap.get("id")).intValue());
-                    message.setSender((String) messageMap.get("sender"));
-                    message.setContent((String) messageMap.get("content"));
-                    message.setTimestamp((String) messageMap.get("timestamp")); // Convert to java.util.Date using toDate()
-                    messages.add(message);
-                }
-                return messages;
-            } else {
-                return new ArrayList<>();
             }
-    
-        } catch (Exception e) {
+            return messagesByContact;
+
+        } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException("Failed to get messages", e);
         }
     }

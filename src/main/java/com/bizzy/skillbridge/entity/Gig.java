@@ -11,6 +11,8 @@ public class Gig {
     private float price;
     private String status;
     private Date createdDate;
+    private Date deadline;
+    private Date updateDeadline;
     private Date updatedDate;
     private int duration;
     private String userCreator;
@@ -97,5 +99,21 @@ public class Gig {
 
     public String getUserCreator() {
         return userCreator;
+    }
+
+    public void setDeadline(Date deadline) {
+        this.deadline = deadline;
+    }
+
+    public Date getDeadline() {
+        return deadline;
+    }
+
+    public void setUpdateDeadline(Date updateDeadline) {
+        this.updateDeadline = updateDeadline;
+    }
+
+    public Date getUpdateDeadline() {
+        return updateDeadline;
     }
 }

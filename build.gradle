@@ -27,6 +27,7 @@ dependencies {
 	implementation 'com.google.firebase:firebase-admin:7.2.0'
 	implementation 'org.mapstruct:mapstruct:1.4.2.Final'
 	implementation 'io.github.cdimascio:dotenv-java:2.2.0'
+	implementation 'com.auth0:java-jwt:4.4.0'
 
 
 	compileOnly 'org.projectlombok:lombok'

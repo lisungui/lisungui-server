@@ -1,5 +1,6 @@
 package com.bizzy.skillbridge.rest.dto;
 
+import java.util.Date;
 
 public class GigPostDTO {
     
@@ -10,6 +11,9 @@ public class GigPostDTO {
     private float price;
     private String status;
     private int duration;
+    private String userCreator;
+    private Date deadline;
+    private Date updateDeadline;
 
     public GigPostDTO() {
     }
@@ -68,6 +72,30 @@ public class GigPostDTO {
 
     public int getDuration() {
         return duration;
+    }
+
+    public void setUserCreator(String userCreator) {
+        this.userCreator = userCreator;
+    }
+
+    public String getUserCreator() {
+        return userCreator;
+    }
+
+    public void setDeadline(Date deadline) {
+        this.deadline = deadline;
+    }
+
+    public Date getDeadline() {
+        return deadline;
+    }
+
+    public void setUpdateDeadline(Date updateDeadline) {
+        this.updateDeadline = updateDeadline;
+    }
+
+    public Date getUpdateDeadline() {
+        return updateDeadline;
     }
 
     @Override
