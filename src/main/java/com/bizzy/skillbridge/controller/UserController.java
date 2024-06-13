@@ -3,6 +3,7 @@ package com.bizzy.skillbridge.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.catalina.mapper.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -163,5 +164,20 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No messages found or could not retrieve messages", e);
         }
     }
+
+    @GetMapping("/messageconversation/{userId}/{otherUid}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseEntity<List<Message>> getMessageConversation(@PathVariable String userId, @PathVariable String otherUid) {
+        try {
+            List<Message> messages = userService.getMessageConversation(userId, otherUid);
+            return new ResponseEntity<>(messages, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // Return 500 for unexpected errors
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No messages found or could not retrieve messages", e);
+        }
+    }
+
     
 }

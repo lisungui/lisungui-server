@@ -402,6 +402,47 @@ public class UserService {
         }
     }
 
+    public List<Message> getMessageConversation(String uid, String contactId) {
+        try {
+            // Reference to the user's document in the 'users' collection
+            User user = getUserRecord(uid);
+            User contact = getUserRecord(contactId);
+            DocumentReference userMessageRef = db.collection("users").document(uid);
+
+            // Fetch the document
+            ApiFuture<DocumentSnapshot> future = userMessageRef.get();
+            DocumentSnapshot document = future.get();
+
+            // Initialize an empty list to collect messages
+            List<Message> messages = new ArrayList<>();
+
+            if (document.exists() && document.contains("messages")) {
+                // Retrieve the messages map from Firestore
+                Map<String, List<Map<String, Object>>> messagesMap = (Map<String, List<Map<String, Object>>>) document.get("messages");
+
+                if (messagesMap != null && messagesMap.containsKey(contactId)) {
+                    // Retrieve the list of message maps for the specific contact
+                    List<Map<String, Object>> messageMaps = messagesMap.get(contactId);
+
+                    // Convert each message map to a Message object
+                    for (Map<String, Object> messageMap : messageMaps) {
+                        Message message = new Message();
+                        message.setId(((Number) messageMap.get("id")).intValue());
+                        message.setSender((String) messageMap.get("sender"));
+                        message.setContent((String) messageMap.get("content"));
+                        message.setTimestamp((String) messageMap.get("timestamp"));
+                        // Add the message to the list
+                        messages.add(message);
+                    }
+                }
+            }
+            return messages;
+
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException("Failed to get message conversation", e);
+        }
+    }
+
 
     private User getUserByEmail(String email) {
         try {
