@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class GigService {
@@ -55,9 +56,6 @@ public class GigService {
             if (gigPostDTO.getPrice() <= 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price is required and must be greater than 0");
             }
-            if (gigPostDTO.getDuration() <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Duration is required");
-            }
             if (gigPostDTO.getStatus() == null || gigPostDTO.getStatus().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status is required");
             }
@@ -68,19 +66,21 @@ public class GigService {
             // Create a new Gig instance from the DTO
             Gig newGig = new Gig();
             newGig.setId(UUID.randomUUID().toString()); // Generate a new unique ID for the gig
-            if (user.getUsername() != null && !user.getUsername().isEmpty()) {
-                newGig.setUserCreator(user.getUsername());
-            } else {
-                newGig.setUserCreator(user.getEmail());
-            }
+            newGig.setUserCreator(user.getId());
             newGig.setTitle(gigPostDTO.getTitle());
             newGig.setDescription(gigPostDTO.getDescription());
             newGig.setCategory(gigPostDTO.getCategory());
             newGig.setPrice(gigPostDTO.getPrice());
-            newGig.setDuration(gigPostDTO.getDuration());
             newGig.setStatus(gigPostDTO.getStatus());
-            newGig.setCreatedDate(new Date());
-            newGig.setDeadline(gigPostDTO.getDeadline());
+            Date createdDate = new Date();
+            newGig.setCreatedDate(createdDate);
+            Date deadline = gigPostDTO.getDeadline();
+            newGig.setDeadline(deadline);
+            long diffInMillies = deadline.getTime() - createdDate.getTime();
+            long durationInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+            newGig.setDuration((int) durationInDays);
+            newGig.setUserCreatorName(user.getUsername());
+            newGig.setUserCreatorEmail(user.getEmail());
     
             // Reference to the 'gigs' collection
             DocumentReference userGigRef = db.collection("gigs").document(uid);
@@ -106,6 +106,8 @@ public class GigService {
             newGigMap.put("status", newGig.getStatus());
             newGigMap.put("createdDate", newGig.getCreatedDate());
             newGigMap.put("deadline", newGig.getDeadline());
+            newGigMap.put("userCreatorName", newGig.getUserCreatorName());
+            newGigMap.put("userCreatorEmail", newGig.getUserCreatorEmail());
     
             existingGigs.add(newGigMap);
 
@@ -139,19 +141,7 @@ public class GigService {
                 // Convert the list of maps to a list of Gig objects
                 List<Gig> gigs = new ArrayList<>();
                 for (Map<String, Object> gigMap : gigMaps) {
-                    Gig gig = new Gig();
-                    gig.setId((String) gigMap.get("id"));
-                    gig.setUserCreator((String) gigMap.get("userCreator"));
-                    gig.setTitle((String) gigMap.get("title"));
-                    gig.setDescription((String) gigMap.get("description"));
-                    gig.setCategory((String) gigMap.get("category"));
-                    gig.setPrice(((Number) gigMap.get("price")).floatValue()); // Convert to float
-                    gig.setDuration(((Number) gigMap.get("duration")).intValue());
-                    gig.setStatus((String) gigMap.get("status"));
-                    Timestamp timestamp = (Timestamp) gigMap.get("createdDate");
-                    gig.setCreatedDate(timestamp.toDate()); // Convert to java.util.Date using toDate()
-                    Timestamp deadline = (Timestamp) gigMap.get("deadline");
-                    gig.setDeadline(deadline.toDate());
+                    Gig gig = convertGigMapToGigJavaObject(gigMap);
                     gigs.add(gig);
                 }
                 return gigs;
@@ -189,21 +179,7 @@ public class GigService {
                         if (category.equals(gigMap.get("category"))) {
 
                             // Create a new Gig object and populate its fields
-                            Gig gig = new Gig();
-                            gig.setId((String) gigMap.get("id"));
-                            gig.setUserCreator((String) gigMap.get("userCreator"));
-                            gig.setTitle((String) gigMap.get("title"));
-                            gig.setDescription((String) gigMap.get("description"));
-                            gig.setCategory((String) gigMap.get("category"));
-                            gig.setPrice(((Number) gigMap.get("price")).floatValue()); // Convert to float
-                            gig.setDuration(((Number) gigMap.get("duration")).intValue());
-                            gig.setStatus((String) gigMap.get("status"));
-
-                            // Replace the previous date handling with the new approach
-                            Timestamp timestamp = (Timestamp) gigMap.get("createdDate");
-                            gig.setCreatedDate(timestamp.toDate()); // Convert to java.util.Date using toDate()
-                            Timestamp deadline = (Timestamp) gigMap.get("deadline");
-                            gig.setDeadline(deadline.toDate());
+                            Gig gig = convertGigMapToGigJavaObject(gigMap);
 
                             // Add the gig to the result list
                             gigs.add(gig);
@@ -246,6 +222,7 @@ public class GigService {
                         gig.setCreatedDate(timestamp.toDate()); // Convert to java.util.Date using toDate()
                         Timestamp deadline = (Timestamp) gigMap.get("deadline");
                         gig.setDeadline(deadline.toDate());
+                        gig.setUpdateDeadline(null);
                         return gig;
                     }
                 }
@@ -259,50 +236,111 @@ public class GigService {
         return null;
     }
 
-    public void updateGig(String gigId, GigPostDTO gigPostDTO) {
+    public void updateGig(String userId, String gigId, GigPostDTO gigPostDTO) {
         try {
-            // Reference to the specific gig document
-            DocumentReference gigRef = db.collection("gigs").document(gigId);
-
-            // Fetch the current gig data
-            ApiFuture<DocumentSnapshot> future = gigRef.get();
+            // Get the specific gig to update
+            Gig gigToUpdate = getGig(userId, gigId);
+            
+            if (gigToUpdate == null || gigToUpdate.getId() == null || gigToUpdate.getId().isEmpty()){
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Gig not found with id: " + gigId);
+            }
+            // Reference to the user's gig document
+            DocumentReference userGigRef = db.collection("gigs").document(userId);
+    
+            // Fetch the document
+            ApiFuture<DocumentSnapshot> future = userGigRef.get();
             DocumentSnapshot document = future.get();
-
-            if (!document.exists()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Gig not found");
+    
+            if (document.exists() && document.contains("gigs")) {
+                List<Map<String, Object>> gigMaps = (List<Map<String, Object>>) document.get("gigs");
+    
+                // Find and update the specific gig in the list
+                for (int i = 0; i < gigMaps.size(); i++) {
+                    Map<String, Object> gigMap = gigMaps.get(i);
+                    String currentGigId = (String) gigMap.get("id");
+    
+                    if (currentGigId.equals(gigId)) {
+                        // Update the fields of the specific gig
+                        updateGigFields(gigMap, gigPostDTO);
+    
+                        // Replace the old gig with the updated gig in the list
+                        gigMaps.set(i, gigMap);
+    
+                        // Update the document with the new list of gigs
+                        Map<String, Object> updateMap = new HashMap<>();
+                        updateMap.put("gigs", gigMaps);
+    
+                        ApiFuture<WriteResult> writeResult = userGigRef.set(updateMap);
+                        writeResult.get();
+    
+                        System.out.println("Gig updated successfully");
+                        return;
+                    }
+                }
+            } else {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Gig list not found for user: " + userId);
             }
-
-            // Create a map to hold the updated fields
-            Map<String, Object> updates = new HashMap<>();
-            String newTitle = gigPostDTO.getTitle();
-            if (newTitle != null && !newTitle.isEmpty()) {
-                updates.put("title", newTitle);
-            }
-            String newDescription = gigPostDTO.getDescription();
-            if (newDescription != null && !newDescription.isEmpty()) {
-                updates.put("description", newDescription);
-            }
-            Date newDeadline = gigPostDTO.getDeadline();
-            if (newDeadline != null) {
-                updates.put("deadline", newDeadline);
-            }
-            float newPrice = gigPostDTO.getPrice();
-            if (newPrice > 0) {
-                updates.put("price", newPrice);
-            }
-            Date updatedDate = new Date();
-            updates.put("updatedDate", updatedDate);
-
-            // Update the gig document with the new values
-            ApiFuture<WriteResult> writeResult = gigRef.update(updates);
-            writeResult.get(); // Wait for the write to complete
-
-            System.out.println("Gig updated successfully");
-
         } catch (ResponseStatusException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not update Gig: " + e.getMessage());
         } catch (Exception e) {
             throw new RuntimeException("Failed to update gig", e);
         }
     }
+    
+    private void updateGigFields(Map<String, Object> gigMap, GigPostDTO gigPostDTO) {
+        String newTitle = gigPostDTO.getTitle();
+        if (newTitle != null && !newTitle.isEmpty()) {
+            gigMap.put("title", newTitle);
+        }
+        String newDescription = gigPostDTO.getDescription();
+        if (newDescription != null && !newDescription.isEmpty()) {
+            gigMap.put("description", newDescription);
+        }
+        Date newDeadline = gigPostDTO.getDeadline();
+        if (newDeadline != null) {
+            gigMap.put("deadline", newDeadline);
+    
+            // Recalculate the duration in days if the deadline is updated
+            Timestamp timestamp = (Timestamp) gigMap.get("createdDate");
+            Date createdDate = timestamp.toDate();
+            long diffInMillies = newDeadline.getTime() - createdDate.getTime();
+            long durationInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+            gigMap.put("duration", (int) durationInDays);
+            
+        }
+        float newPrice = gigPostDTO.getPrice();
+        if (newPrice > 0) {
+            gigMap.put("price", newPrice);
+        }
+        // Update the updatedDate to the current date
+        Date updatedDate = new Date();
+        gigMap.put("updatedDate", updatedDate);
+    }
+
+    private Gig convertGigMapToGigJavaObject(Map<String, Object> gigMap) {
+        Gig gig = new Gig();
+        gig.setId((String) gigMap.get("id"));
+        gig.setUserCreator((String) gigMap.get("userCreator"));
+        gig.setTitle((String) gigMap.get("title"));
+        gig.setDescription((String) gigMap.get("description"));
+        gig.setCategory((String) gigMap.get("category"));
+        gig.setPrice(((Number) gigMap.get("price")).floatValue()); // Convert to float
+        gig.setDuration(((Number) gigMap.get("duration")).intValue());
+        gig.setStatus((String) gigMap.get("status"));
+        gig.setUserCreatorEmail((String) gigMap.get("userCreatorEmail"));
+        String userCreatorName = (String) gigMap.get("userCreatorName");
+        if (userCreatorName != null) {
+            gig.setUserCreatorName(userCreatorName);
+        }
+        Timestamp timestamp = (Timestamp) gigMap.get("createdDate");
+        gig.setCreatedDate(timestamp.toDate()); // Convert to java.util.Date using toDate()
+        Timestamp deadline = (Timestamp) gigMap.get("deadline");
+        gig.setDeadline(deadline.toDate());
+        Timestamp updatedDate = (Timestamp) gigMap.get("updatedDate");
+        if (updatedDate != null) {
+            gig.setUpdatedDate(updatedDate.toDate());
+        }
+        return gig;
+    }
+    
 }

@@ -51,10 +51,10 @@ public class GigController {
         }
     }
 
-    @GetMapping("/gigs/{uid}")
+    @GetMapping("/gigs/{uid}/{gigId}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseEntity<Gig> getGig(@PathVariable String uid, @RequestBody String gigId) {
+    public ResponseEntity<Gig> getGig(@PathVariable String uid, @PathVariable String gigId) {
         try {
             Gig gig = gigService.getGig(uid, gigId);
             return new ResponseEntity<>(gig, HttpStatus.OK);
@@ -77,12 +77,12 @@ public class GigController {
         }
     }
 
-    @PutMapping("/gigs/{uid}")
+    @PutMapping("/gigs/updategig/{userId}/{gigId}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseEntity<String> updateGig(@PathVariable String uid, @RequestBody GigPostDTO gigPostDTO) throws Exception{
+    public ResponseEntity<String> updateGig(@PathVariable String userId, @PathVariable String gigId, @RequestBody GigPostDTO gigPostDTO) throws Exception{
         try {
-            gigService.updateGig(uid, gigPostDTO);
+            gigService.updateGig(userId, gigId, gigPostDTO);
             return new ResponseEntity<>("Gig updated successfully", HttpStatus.OK);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND.value(), "Gig not found or could not update gig: " + e.getMessage(), e);

@@ -16,6 +16,9 @@ public class Gig {
     private Date updatedDate;
     private int duration;
     private String userCreator;
+    private String userCreatorName;
+    private String userCreatorEmail;
+    private int numberOfApplicants=0;
 
     
     public Gig() {
@@ -115,5 +118,29 @@ public class Gig {
 
     public Date getUpdateDeadline() {
         return updateDeadline;
+    }
+
+    public void setUserCreatorName(String userCreatorName) {
+        this.userCreatorName = userCreatorName;
+    }
+
+    public String getUserCreatorName() {
+        return userCreatorName;
+    }
+
+    public void setUserCreatorEmail(String userCreatorEmail) {
+        this.userCreatorEmail = userCreatorEmail;
+    }
+
+    public String getUserCreatorEmail() {
+        return userCreatorEmail;
+    }
+
+    public void setNumberOfApplicants(int numberOfApplicants) {
+        this.numberOfApplicants = numberOfApplicants;
+    }
+
+    public int getNumberOfApplicants() {
+        return numberOfApplicants;
     }
 }
