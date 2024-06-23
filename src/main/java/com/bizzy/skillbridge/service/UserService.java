@@ -7,15 +7,12 @@ import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.bizzy.skillbridge.constant.UserStatus;
-import com.bizzy.skillbridge.entity.Gig;
 import com.bizzy.skillbridge.entity.Message;
 import com.bizzy.skillbridge.entity.User;
-import com.bizzy.skillbridge.rest.dto.GigPostDTO;
 import com.bizzy.skillbridge.rest.dto.MessageDTO;
 import com.bizzy.skillbridge.rest.dto.UserPostDTO;
 import com.google.cloud.firestore.QuerySnapshot;
@@ -25,9 +22,7 @@ import com.google.firebase.auth.UserRecord;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.Timestamp;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,17 +50,17 @@ public class UserService {
         return createUser(user);
     }
 
-    public User loginUser(User user) {
+    // public User loginUser(User user) {
 
-        if (userEmailAndPasswordMatch(user.getEmail(), user.getPassword())) {
-            User loggedInUser = getUserByEmail(user.getEmail());
-            System.out.println("User logged in");
-            return loggedInUser;
-        } else {
-            System.out.println("Invalid email or password");
-            return null;
-        }
-    }
+    //     if (userEmailAndPasswordMatch(user.getEmail(), user.getPassword())) {
+    //         User loggedInUser = getUserByEmail(user.getEmail());
+    //         System.out.println("User logged in");
+    //         return loggedInUser;
+    //     } else {
+    //         System.out.println("Invalid email or password");
+    //         return null;
+    //     }
+    // }
 
     
     public User updateUser(String uid, UserPostDTO userPostDTO) {
@@ -97,14 +92,14 @@ public class UserService {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid city format. Please use a valid city.");
                 }
             }
-            updatedUser.setCity(userPostDTO.getCity());
+            // updatedUser.setCity(userPostDTO.getCity());
 
-            if (userPostDTO.getCountry() != null && !userPostDTO.getCountry().isEmpty()) {
-                if (!userPostDTO.getCountry().matches("^[a-zA-Z]+(?:[\\s-][a-zA-Z]+)*$")) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid country format. Please use a valid country.");
-                }
-            }
-            updatedUser.setCountry(userPostDTO.getCountry());
+            // if (userPostDTO.getCountry() != null && !userPostDTO.getCountry().isEmpty()) {
+            //     if (!userPostDTO.getCountry().matches("^[a-zA-Z]+(?:[\\s-][a-zA-Z]+)*$")) {
+            //         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid country format. Please use a valid country.");
+            //     }
+            // }
+            // updatedUser.setCountry(userPostDTO.getCountry());
             // if (userPostDTO.getSkills() != null && !userPostDTO.getSkills().isEmpty()){
             //     for (String skill : userPostDTO.getSkills()) {
             //         if (!skill.matches("^[a-zA-Z]+(?:[\\s-][a-zA-Z]+)*$")) {
@@ -120,14 +115,14 @@ public class UserService {
                     }
                 }
             }
-            updatedUser.setLanguages(userPostDTO.getLanguages());
+            // updatedUser.setLanguages(userPostDTO.getLanguages());
 
-            if (userPostDTO.getInterests() != null && !userPostDTO.getInterests().isEmpty()){
-                updatedUser.setInterests(userPostDTO.getInterests());
-            }
-            if (userPostDTO.getAddress() != null && !userPostDTO.getAddress().isEmpty()){
-                updatedUser.setAddress(userPostDTO.getAddress());
-            }
+            // if (userPostDTO.getInterests() != null && !userPostDTO.getInterests().isEmpty()){
+            //     updatedUser.setInterests(userPostDTO.getInterests());
+            // }
+            // if (userPostDTO.getAddress() != null && !userPostDTO.getAddress().isEmpty()){
+            //     updatedUser.setAddress(userPostDTO.getAddress());
+            // }
             // if (userPostDTO.getCourses() != null && !userPostDTO.getCourses().isEmpty()){
             //     user.setCourses(userPostDTO.getCourses());
             // }
@@ -175,96 +170,6 @@ public class UserService {
         }
     }
 
-    public User createFreelanceUser(String uid){
-        try {
-            User user = new User();
-            User userRecord = getUserRecord(uid);
-            String email = userRecord.getEmail();
-            String fullname = userRecord.getFullName();
-            if (userExists(email)) {
-                user.setEmail(email);
-                return user;
-            }
-            if (fullname != null && !fullname.isEmpty()) {
-                int firstSpaceIndex = fullname.indexOf(' ');
-                if (firstSpaceIndex != -1) {
-                    user.setFirstName(fullname.substring(0, firstSpaceIndex));
-                    user.setLastName(fullname.substring(firstSpaceIndex + 1));
-                }
-            } 
-            user.setUserToken(UUID.randomUUID().toString());
-            user.setEmail(email);
-            user.setRole("freelancer");
-            user.setId(uid);
-            user.setPicture(userRecord.getPicture());
-            DocumentReference newUserRef = db.collection("users").document(uid);
-            WriteResult writeResult = newUserRef.set(user).get();
-            return user;
-        } catch (ResponseStatusException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not create: "+ e.getMessage());  // Rethrow ResponseStatusException directly
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create freelance user", e);
-        }
-    }
-
-    public User updateFreelanceUser(String uid, User user){
-        try {
-            User userRecord = getUserRecord(uid);
-            User updatedUser = getUserByEmail(userRecord.getEmail());
-            if (user.getLastName().isEmpty() || user.getFirstName() == null ) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "First name is required");
-            }
-            if (user.getLastName().isEmpty() || user.getLastName() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Last name is required");
-            }
-            if (user.getPhone() != null && !user.getPhone().isEmpty()) {
-                if (!user.getPhone().matches("^[0-9]{10}$")) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid phone number format. Please use a valid phone number.");
-                }
-                updatedUser.setPhone(user.getPhone());
-            }
-            if (user.getCity() != null && !user.getCity().isEmpty()) {
-                if (!user.getCity().matches("^[a-zA-Z]+(?:[\\s-][a-zA-Z]+)*$")) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid city format. Please use a valid city.");
-                }
-                updatedUser.setCity(user.getCity());
-            }
-            if (user.getSkills() != null && !user.getSkills().isEmpty()){
-                // for (String skill : user.getSkills()) {
-                //     if (!skill.matches("^[a-zA-Z]+(?:[\\s-][a-zA-Z]+)*$")) {
-                //         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid skill format. Please use a valid skill.");
-                //     }
-                // }
-                updatedUser.setSkills(user.getSkills());
-            }
-            if (user.getLanguages() != null && !user.getLanguages().isEmpty()){
-                for (String language : user.getLanguages()) {
-                    if (!language.matches("^[a-zA-Z]+(?:[\\s-][a-zA-Z]+)*$")) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid language format. Please use a valid language.");
-                    }
-                }
-                updatedUser.setLanguages(user.getLanguages());
-            }
-            if (user.getCourses() != null && !user.getCourses().isEmpty()){
-                updatedUser.setCourses(user.getCourses());
-            }
-            updatedUser.setFirstName(user.getFirstName());
-            updatedUser.setLastName(user.getLastName());
-            updatedUser.setCity(user.getCity());
-            updatedUser.setRating(0);
-            DocumentReference newUserRef = db.collection("users").document(uid);
-            updatedUser.setId(uid);
-            updatedUser.setStatus(UserStatus.ONLINE);
-            WriteResult writeResult = newUserRef.set(updatedUser).get();
-            return updatedUser;
-
-        } catch (ResponseStatusException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not create: "+ e.getMessage());  // Rethrow ResponseStatusException directly
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create freelance user", e);
-        }
-    }
-
     public User getUserRecord(String uid) {
         try {
             UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
@@ -274,8 +179,19 @@ public class UserService {
                 user.setEmail(userRecord.getEmail());
                 user.setPicture(userRecord.getPhotoUrl());
                 user.setId(uid);
-                user.setFullName(userRecord.getDisplayName());
+                String fullName = userRecord.getDisplayName();
+                if (fullName != null) {
+                    user.setFullName(fullName);
+                    String[] names = splitFullName(fullName);
+                    String firstName = names[0];
+                    user.setFirstName(firstName);
+                    user.setLastName(names[1]);
+                    user.setUsername(firstName);
+
+                }
                 user.setUserToken(UUID.randomUUID().toString());
+                Date date = new Date();
+                user.setCreatedDate(date);
                 DocumentReference newUserRef = db.collection("users").document(uid);
                 WriteResult writeResult = newUserRef.set(user).get();
                 return user;
@@ -285,7 +201,7 @@ public class UserService {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get user record", e);
+            throw new RuntimeException("Failed to get user record: " + e.getMessage());
         }
     }
 
@@ -515,6 +431,19 @@ public class UserService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to create user", e);
         }
+    }
+
+    private String[] splitFullName(String fullName) {
+        int lastSpaceIndex = fullName.lastIndexOf(" ");
+        
+        if (lastSpaceIndex == -1) {
+            return new String[]{fullName, ""};
+        }
+        
+        String firstPart = fullName.substring(0, lastSpaceIndex);
+        String lastPart = fullName.substring(lastSpaceIndex + 1);
+        
+        return new String[]{firstPart, lastPart};
     }
 
     private boolean checkIfEmailValid(String email) {

@@ -13,16 +13,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.bizzy.skillbridge.entity.Gig;
 import com.bizzy.skillbridge.entity.Message;
 import com.bizzy.skillbridge.entity.User;
-import com.bizzy.skillbridge.rest.dto.GigGetDTO;
-import com.bizzy.skillbridge.rest.dto.GigPostDTO;
 import com.bizzy.skillbridge.rest.dto.MessageDTO;
 import com.bizzy.skillbridge.rest.dto.UserPostDTO;
 import com.bizzy.skillbridge.rest.mapper.DTOMapper;
@@ -54,47 +52,47 @@ public class UserController {
         }
     }
 
-    @PostMapping("/users/login")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ResponseEntity<User> loginUser(@RequestBody UserPostDTO userPostDTO) throws Exception{
-        User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
-        User user = userService.loginUser(userInput);
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email or password");
-        } else {
-            return ResponseEntity.ok(user);
-        }
-    }
+    // @PostMapping("/users/login")
+    // @ResponseStatus(HttpStatus.OK)
+    // @ResponseBody
+    // public ResponseEntity<User> loginUser(@RequestBody UserPostDTO userPostDTO) throws Exception{
+    //     User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
+    //     User user = userService.loginUser(userInput);
+    //     if (user == null) {
+    //         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email or password");
+    //     } else {
+    //         return ResponseEntity.ok(user);
+    //     }
+    // }
 
-    @PostMapping("/createfreelance")
-    @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
-    public ResponseEntity<User> createFreelanceUser(@RequestBody String uid) throws JsonMappingException, JsonProcessingException{
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, String> map = objectMapper.readValue(uid, Map.class);
-        String mappedUid = map.get("uid");
-        User freelancer = userService.createFreelanceUser(mappedUid);
-        if (freelancer == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create freelancer user");
-        } else {
-            return ResponseEntity.ok(freelancer);
-        }
-    }
+    // @PostMapping("/createfreelance")
+    // @ResponseStatus(HttpStatus.CREATED)
+    // @ResponseBody
+    // public ResponseEntity<User> createFreelanceUser(@RequestBody String uid) throws JsonMappingException, JsonProcessingException{
+    //     ObjectMapper objectMapper = new ObjectMapper();
+    //     Map<String, String> map = objectMapper.readValue(uid, Map.class);
+    //     String mappedUid = map.get("uid");
+    //     User freelancer = userService.createFreelanceUser(mappedUid);
+    //     if (freelancer == null) {
+    //         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create freelancer user");
+    //     } else {
+    //         return ResponseEntity.ok(freelancer);
+    //     }
+    // }
 
 
-    @PutMapping("/users/freelance/{uid}")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ResponseEntity<User> createFreelanceUser(@PathVariable String uid, @RequestBody UserPostDTO userPostDTO) throws Exception{
-        User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
-        User freelancer = userService.updateFreelanceUser(uid, userInput);
-        if (freelancer == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create freelancer user");
-        } else {
-            return ResponseEntity.ok(freelancer);
-        }
-    }
+    // @PutMapping("/users/freelance/{uid}")
+    // @ResponseStatus(HttpStatus.OK)
+    // @ResponseBody
+    // public ResponseEntity<User> createFreelanceUser(@PathVariable String uid, @RequestBody UserPostDTO userPostDTO) throws Exception{
+    //     User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
+    //     User freelancer = userService.updateFreelanceUser(uid, userInput);
+    //     if (freelancer == null) {
+    //         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create freelancer user");
+    //     } else {
+    //         return ResponseEntity.ok(freelancer);
+    //     }
+    // }
 
     @PutMapping("/users/{id}")
     @ResponseStatus(HttpStatus.OK)
@@ -108,10 +106,22 @@ public class UserController {
         }
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/user")  // Changed to a singular form to differentiate
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseEntity<User> getUser(@PathVariable String id) throws Exception{
+    public ResponseEntity<User> getUserById(@RequestParam String id) throws Exception {
+        User user = userService.getUserRecord(id);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        } else {
+            return ResponseEntity.ok(user);
+        }
+    }
+
+    @GetMapping("/users/{id}")  // Changed to a singular form to differentiate
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public ResponseEntity<User> getUserByIdFromPath(@PathVariable String id) throws Exception {
         User user = userService.getUserRecord(id);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");

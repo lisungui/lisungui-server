@@ -42,8 +42,7 @@ public class GigService {
         try {
             // Validate the user existence (assuming getUserRecord validates this)
             User user = userService.getUserRecord(uid);
-
-            // Validate the gig data
+    
             if (gigPostDTO.getTitle() == null || gigPostDTO.getTitle().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Title is required");
             }
@@ -76,24 +75,21 @@ public class GigService {
             newGig.setCreatedDate(createdDate);
             Date deadline = gigPostDTO.getDeadline();
             newGig.setDeadline(deadline);
-            long diffInMillies = deadline.getTime() - createdDate.getTime();
-            long durationInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
-            newGig.setDuration((int) durationInDays);
             newGig.setUserCreatorName(user.getUsername());
             newGig.setUserCreatorEmail(user.getEmail());
     
             // Reference to the 'gigs' collection
             DocumentReference userGigRef = db.collection("gigs").document(uid);
-
+    
             ApiFuture<DocumentSnapshot> future = userGigRef.get();
             DocumentSnapshot document = future.get();
-
+    
             // Initialize the gig list if not present
             List<Map<String, Object>> existingGigs = new ArrayList<>();
             if (document.exists() && document.contains("gigs")) {
                 existingGigs = (List<Map<String, Object>>) document.get("gigs");
             }
-
+    
             // Convert the new gig to a map
             Map<String, Object> newGigMap = new HashMap<>();
             newGigMap.put("id", newGig.getId());
@@ -102,7 +98,7 @@ public class GigService {
             newGigMap.put("description", newGig.getDescription());
             newGigMap.put("category", newGig.getCategory());
             newGigMap.put("price", newGig.getPrice());
-            newGigMap.put("duration", newGig.getDuration());
+            newGigMap.put("duration", 0);
             newGigMap.put("status", newGig.getStatus());
             newGigMap.put("createdDate", newGig.getCreatedDate());
             newGigMap.put("deadline", newGig.getDeadline());
@@ -110,13 +106,13 @@ public class GigService {
             newGigMap.put("userCreatorEmail", newGig.getUserCreatorEmail());
     
             existingGigs.add(newGigMap);
-
+    
             // Update the document with the new list of gigs
             Map<String, Object> updateMap = new HashMap<>();
             updateMap.put("gigs", existingGigs);
-
-        userGigRef.set(updateMap).get();
-        System.out.println("Gig created successfully");
+    
+            userGigRef.set(updateMap).get();
+            System.out.println("Gig created successfully");
     
         } catch (ResponseStatusException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not create Gig: " + e.getMessage());
@@ -124,6 +120,7 @@ public class GigService {
             throw new RuntimeException("Failed to create gig", e);
         }
     }
+    
 
     public List<Gig> getGigs(String uid) {
         try {
@@ -298,15 +295,7 @@ public class GigService {
         }
         Date newDeadline = gigPostDTO.getDeadline();
         if (newDeadline != null) {
-            gigMap.put("deadline", newDeadline);
-    
-            // Recalculate the duration in days if the deadline is updated
-            Timestamp timestamp = (Timestamp) gigMap.get("createdDate");
-            Date createdDate = timestamp.toDate();
-            long diffInMillies = newDeadline.getTime() - createdDate.getTime();
-            long durationInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
-            gigMap.put("duration", (int) durationInDays);
-            
+            gigMap.put("deadline", newDeadline);    
         }
         float newPrice = gigPostDTO.getPrice();
         if (newPrice > 0) {
@@ -332,10 +321,28 @@ public class GigService {
         if (userCreatorName != null) {
             gig.setUserCreatorName(userCreatorName);
         }
-        Timestamp timestamp = (Timestamp) gigMap.get("createdDate");
-        gig.setCreatedDate(timestamp.toDate()); // Convert to java.util.Date using toDate()
-        Timestamp deadline = (Timestamp) gigMap.get("deadline");
-        gig.setDeadline(deadline.toDate());
+
+        Timestamp createdTimestamp = (Timestamp) gigMap.get("createdDate");
+        if (createdTimestamp != null) {
+            gig.setCreatedDate(createdTimestamp.toDate());
+        }
+
+        // Handle deadline conversion
+        Timestamp deadlineTimestamp = (Timestamp) gigMap.get("deadline");
+        if (deadlineTimestamp != null) {
+            Date deadlineDate = deadlineTimestamp.toDate();
+            gig.setDeadline(deadlineDate);
+
+            // Calculate the remaining duration in days from the current date to the deadline
+            long currentDate = new Date().getTime();
+            long diffInMillies = deadlineDate.getTime() - currentDate;
+            long durationInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+            gig.setDuration((int) durationInDays);
+        } else {
+            // If there's no deadline, set duration to zero or another appropriate value
+            gig.setDuration(0);
+        }
+        
         Timestamp updatedDate = (Timestamp) gigMap.get("updatedDate");
         if (updatedDate != null) {
             gig.setUpdatedDate(updatedDate.toDate());
