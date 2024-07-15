@@ -1,19 +1,25 @@
 package com.bizzy.skillbridge.service;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.UUID;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.bizzy.skillbridge.constant.UserStatus;
 import com.bizzy.skillbridge.entity.Freelancer;
 import com.bizzy.skillbridge.entity.User;
 import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
+
 
 @Service
 public class FreelancerService {
@@ -27,16 +33,32 @@ public class FreelancerService {
         this.userService = userService;
     }
 
-    public Freelancer createFreelanceUser(String uid) {
+    public Freelancer createFreelanceUser(String uid, Freelancer freelancerDTO) {
         try {
             // Fetch user details from Firebase
             User userRecord = userService.getUserRecord(uid);
 
-            // Create a new Freelancer instance using the constructor
+            // Create a new Freelancer instance using the DTO
             Freelancer freelancer = new Freelancer(userRecord);
+            freelancer.setSummary(freelancerDTO.getSummary());
+            freelancer.setSkills(freelancerDTO.getSkills());
+            freelancer.setInterests(freelancerDTO.getInterests());
+            freelancer.setLanguages(freelancerDTO.getLanguages());
+            freelancer.setCertifications(freelancerDTO.getCertifications());
+            freelancer.setEducation(freelancerDTO.getEducation());
+            freelancer.setExperience(freelancerDTO.getExperience());
+            freelancer.setProjects(freelancerDTO.getProjects());
+            freelancer.setSocialLinks(freelancerDTO.getSocialLinks());
+            freelancer.setReferences(freelancerDTO.getReferences());
+            freelancer.setAwards(freelancerDTO.getAwards());
+            freelancer.setPublications(freelancerDTO.getPublications());
+            freelancer.setPatents(freelancerDTO.getPatents());
+            freelancer.setCourses(freelancerDTO.getCourses());
+            freelancer.setOrganizations(freelancerDTO.getOrganizations());
+            freelancer.setVolunteer(freelancerDTO.getVolunteer());
             freelancer.setRole("freelancer");
             freelancer.setRating(0);
-            
+
             // Save the Freelancer to Firestore
             DocumentReference newUserRef = db.collection("users").document(uid);
             WriteResult writeResult = newUserRef.set(freelancer).get();
@@ -46,8 +68,45 @@ public class FreelancerService {
 
         } catch (ResponseStatusException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not create Freelancer: " + e.getMessage());
-        } catch (Exception e) {
+        } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException("Failed to create freelance user", e);
+        }
+    }
+
+    public Freelancer getFreelancer(String uid) {
+        try {
+            DocumentReference userRef = db.collection("users").document(uid);
+            ApiFuture<DocumentSnapshot> future = userRef.get();
+            DocumentSnapshot document = future.get();
+    
+            if (document.exists()) {
+                Freelancer freelancer = document.toObject(Freelancer.class);
+                if (freelancer != null && "freelancer".equals(freelancer.getRole())) {
+                    return freelancer;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a freelancer");
+                }
+            } else {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Freelancer not found");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Failed to fetch freelancer", e);
+        }
+    }
+    
+
+    public List<Freelancer> getFreelancers() {
+        // Fetch all freelancers from Firestore
+        try {
+            ApiFuture<QuerySnapshot> query = db.collection("users").whereEqualTo("role", "freelancer").get();
+            QuerySnapshot querySnapshot = query.get();
+            List<Freelancer> freelancers = new ArrayList<>();
+            for (QueryDocumentSnapshot document : querySnapshot) {
+                freelancers.add(document.toObject(Freelancer.class));
+            }
+            return freelancers;
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Failed to fetch freelancers", e);
         }
     }
 

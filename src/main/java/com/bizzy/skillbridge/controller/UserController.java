@@ -154,40 +154,5 @@ public class UserController {
         }
     }
 
-    @PostMapping("/sendmessage")
-    @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
-    public void sendMessage(@RequestBody MessageDTO messageDTO) throws Exception{
-        userService.sendMessage(messageDTO);
-    }
-
-    @GetMapping("/messages/{uid}")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ResponseEntity<Map<String, List<Message>>> getMessages(@PathVariable String uid) {
-        try {
-            Map<String, List<Message>> messages = userService.getMessages(uid);
-            return new ResponseEntity<>(messages, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // Return 500 for unexpected errors
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No messages found or could not retrieve messages", e);
-        }
-    }
-
-    @GetMapping("/messageconversation/{userId}/{otherUid}")
-    @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    public ResponseEntity<List<Message>> getMessageConversation(@PathVariable String userId, @PathVariable String otherUid) {
-        try {
-            List<Message> messages = userService.getMessageConversation(userId, otherUid);
-            return new ResponseEntity<>(messages, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // Return 500 for unexpected errors
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No messages found or could not retrieve messages", e);
-        }
-    }
-
     
 }

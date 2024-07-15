@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Freelancer extends User {
-    private List<String> skills = new ArrayList<>();
+    private String summary;
+    private List<Skill> skills = new ArrayList<>();
     private List<String> interests = new ArrayList<>();
-    private List<String> languages = new ArrayList<>();
+    private List<Language> languages = new ArrayList<>();
     private List<String> certifications = new ArrayList<>();
     private List<String> education = new ArrayList<>();
-    private List<String> experience = new ArrayList<>();
+    private List<Experience> experience = new ArrayList<>();
     private List<String> projects = new ArrayList<>();
     private List<String> socialLinks = new ArrayList<>();
-    private List<String> references = new ArrayList<>();
+    private List<Reference> references = new ArrayList<>();
     private List<String> awards = new ArrayList<>();
     private List<String> publications = new ArrayList<>();
     private List<String> patents = new ArrayList<>();
@@ -44,11 +45,19 @@ public class Freelancer extends User {
         this.setGender(user.getGender());
     }
 
-    public List<String> getSkills() {
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public List<Skill> getSkills() {
         return skills;
     }
 
-    public void setSkills(List<String> skills) {
+    public void setSkills(List<Skill> skills) {
         this.skills = skills;
     }
 
@@ -60,11 +69,11 @@ public class Freelancer extends User {
         this.interests = interests;
     }
 
-    public List<String> getLanguages() {
+    public List<Language> getLanguages() {
         return languages;
     }
 
-    public void setLanguages(List<String> languages) {
+    public void setLanguages(List<Language> languages) {
         this.languages = languages;
     }
 
@@ -84,11 +93,11 @@ public class Freelancer extends User {
         this.education = education;
     }
 
-    public List<String> getExperience() {
+    public List<Experience> getExperience() {
         return experience;
     }
 
-    public void setExperience(List<String> experience) {
+    public void setExperience(List<Experience> experience) {
         this.experience = experience;
     }
 
@@ -108,11 +117,11 @@ public class Freelancer extends User {
         this.socialLinks = socialLinks;
     }
 
-    public List<String> getReferences() {
+    public List<Reference> getReferences() {
         return references;
     }
 
-    public void setReferences(List<String> references) {
+    public void setReferences(List<Reference> references) {
         this.references = references;
     }
 
@@ -183,7 +192,8 @@ public class Freelancer extends User {
     @Override
     public String toString() {
         return "Freelancer{" +
-                "skills=" + skills +
+                "summary='" + summary + '\'' +
+                ", skills=" + skills +
                 ", interests=" + interests +
                 ", languages=" + languages +
                 ", certifications=" + certifications +
@@ -201,5 +211,161 @@ public class Freelancer extends User {
                 ", rating=" + rating +
                 ", role='" + role + '\'' +
                 '}' + super.toString(); // Include User's toString for inherited fields
+    }
+
+    public static class Skill {
+        private String skill;
+        private String level;
+
+        public Skill() {
+        }
+
+        public Skill(String skill, String level) {
+            this.skill = skill;
+            this.level = level;
+        }
+
+        public String getSkill() {
+            return skill;
+        }
+
+        public void setSkill(String skill) {
+            this.skill = skill;
+        }
+
+        public String getLevel() {
+            return level;
+        }
+
+        public void setLevel(String level) {
+            this.level = level;
+        }
+    }
+
+    public static class Language {
+        private String language;
+        private String level;
+
+        public Language() {
+        }
+
+        public Language(String language, String level) {
+            this.language = language;
+            this.level = level;
+        }
+
+        public String getLanguage() {
+            return language;
+        }
+
+        public void setLanguage(String language) {
+            this.language = language;
+        }
+
+        public String getLevel() {
+            return level;
+        }
+
+        public void setLevel(String level) {
+            this.level = level;
+        }
+    }
+
+    public static class Experience {
+        private String companyName;
+        private String position;
+        private String startDate;
+        private String endDate;
+        private String responsibility;
+
+        public Experience() {
+        }
+
+        public Experience(String companyName, String position, String startDate, String endDate, String responsibility) {
+            this.companyName = companyName;
+            this.position = position;
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.responsibility = responsibility;
+        }
+
+        public String getCompanyName() {
+            return companyName;
+        }
+
+        public void setCompanyName(String companyName) {
+            this.companyName = companyName;
+        }
+
+        public String getPosition() {
+            return position;
+        }
+
+        public void setPosition(String position) {
+            this.position = position;
+        }
+
+        public String getStartDate() {
+            return startDate;
+        }
+
+        public void setStartDate(String startDate) {
+            this.startDate = startDate;
+        }
+
+        public String getEndDate() {
+            return endDate;
+        }
+
+        public void setEndDate(String endDate) {
+            this.endDate = endDate;
+        }
+
+        public String getResponsibility() {
+            return responsibility;
+        }
+
+        public void setResponsibility(String responsibility) {
+            this.responsibility = responsibility;
+        }
+    }
+
+    public static class Reference {
+        private String name;
+        private String position;
+        private String email;
+
+        public Reference() {
+        }
+
+        public Reference(String name, String position, String email) {
+            this.name = name;
+            this.position = position;
+            this.email = email;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getPosition() {
+            return position;
+        }
+
+        public void setPosition(String position) {
+            this.position = position;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
     }
 }

@@ -6,6 +6,7 @@ public class MessageDTO {
     private String content;
     private int id;
     private String timestamp;
+    private boolean read;
 
     // Getters and Setters
     public String getSenderId() {
@@ -46,5 +47,13 @@ public class MessageDTO {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public boolean isRead() {
+        return read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
     }
 }

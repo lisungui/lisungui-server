@@ -11,9 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.bizzy.skillbridge.constant.UserStatus;
-import com.bizzy.skillbridge.entity.Message;
 import com.bizzy.skillbridge.entity.User;
-import com.bizzy.skillbridge.rest.dto.MessageDTO;
 import com.bizzy.skillbridge.rest.dto.UserPostDTO;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
@@ -25,9 +23,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class UserService {
@@ -202,160 +198,6 @@ public class UserService {
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to get user record: " + e.getMessage());
-        }
-    }
-
-    public void sendMessage(MessageDTO messageDTO) {
-        try {
-            // Validate sender and recipient existence
-            User sender = getUserRecord(messageDTO.getSenderId());
-            User recipient = getUserRecord(messageDTO.getRecipientId());
-
-            // Create a new message object
-            Message newMessage = new Message();
-            newMessage.setId(messageDTO.getId());
-            newMessage.setSender(messageDTO.getSenderId());
-            newMessage.setContent(messageDTO.getContent());
-            newMessage.setTimestamp(messageDTO.getTimestamp());
-
-            // Update the sender's messages dictionary
-            DocumentReference senderRef = db.collection("users").document(sender.getId());
-            updateMessagesForUser(senderRef, messageDTO.getRecipientId(), newMessage);
-
-            // Update the recipient's messages dictionary
-            DocumentReference recipientRef = db.collection("users").document(recipient.getId());
-            updateMessagesForUser(recipientRef, messageDTO.getSenderId(), newMessage);
-
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException("Failed to send message", e);
-        }
-    }
-
-    private void updateMessagesForUser(DocumentReference userRef, String contactId, Message newMessage) throws ExecutionException, InterruptedException {
-        DocumentSnapshot userSnapshot = userRef.get().get();
-
-        if (userSnapshot.exists()) {
-            // Initialize the messages map
-            Map<String, List<Message>> messagesMap = new HashMap<>();
-
-            // Retrieve existing messages or initialize the structure if absent
-            Object messagesField = userSnapshot.get("messages");
-
-            if (messagesField instanceof Map) {
-                // It's already a Map, so we can cast and use it directly
-                messagesMap = (Map<String, List<Message>>) messagesField;
-            } else if (messagesField instanceof List) {
-                // It's a List, we need to convert it to a Map under a general key
-                List<Message> messagesList = (List<Message>) messagesField;
-                messagesMap.put("general", messagesList);
-            }
-
-            // Add the new message to the list for the specific contactId
-            List<Message> contactMessages = messagesMap.computeIfAbsent(contactId, k -> new ArrayList<>());
-            contactMessages.add(newMessage);
-
-            // Save the updated messages map back to Firestore
-            userRef.update("messages", messagesMap).get();
-        } else {
-            // If the document doesn't exist, create a new one with the messages structure
-            Map<String, List<Message>> messagesMap = new HashMap<>();
-            List<Message> contactMessages = new ArrayList<>();
-            contactMessages.add(newMessage);
-            messagesMap.put(contactId, contactMessages);
-
-            Map<String, Object> data = new HashMap<>();
-            data.put("messages", messagesMap);
-
-            userRef.set(data).get();
-        }
-    }
-
-    public Map<String, List<Message>> getMessages(String uid) {
-        try {
-            // Reference to the user's document in the 'users' collection
-            DocumentReference userMessageRef = db.collection("users").document(uid);
-
-            // Fetch the document
-            ApiFuture<DocumentSnapshot> future = userMessageRef.get();
-            DocumentSnapshot document = future.get();
-
-            // Initialize an empty map to collect messages by contact ID
-            Map<String, List<Message>> messagesByContact = new HashMap<>();
-
-            if (document.exists() && document.contains("messages")) {
-                // Retrieve the messages map from Firestore
-                Map<String, List<Map<String, Object>>> messagesMap = (Map<String, List<Map<String, Object>>>) document.get("messages");
-
-                if (messagesMap != null) {
-                    // Iterate through the map entries
-                    for (Map.Entry<String, List<Map<String, Object>>> entry : messagesMap.entrySet()) {
-                        String contactId = entry.getKey();
-                        List<Map<String, Object>> messageMaps = entry.getValue();
-
-                        // Initialize a list to hold Message objects for this contact
-                        List<Message> messages = new ArrayList<>();
-
-                        // Convert each message map to a Message object
-                        for (Map<String, Object> messageMap : messageMaps) {
-                            Message message = new Message();
-                            message.setId(((Number) messageMap.get("id")).intValue());
-                            message.setSender((String) messageMap.get("sender"));
-                            message.setContent((String) messageMap.get("content"));
-                            message.setTimestamp((String) messageMap.get("timestamp"));
-                            // Add the message to the list for this contact
-                            messages.add(message);
-                        }
-
-                        // Add the list of messages to the map under the contact ID
-                        messagesByContact.put(contactId, messages);
-                    }
-                }
-            }
-            return messagesByContact;
-
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException("Failed to get messages", e);
-        }
-    }
-
-    public List<Message> getMessageConversation(String uid, String contactId) {
-        try {
-            // Reference to the user's document in the 'users' collection
-            User user = getUserRecord(uid);
-            User contact = getUserRecord(contactId);
-            DocumentReference userMessageRef = db.collection("users").document(uid);
-
-            // Fetch the document
-            ApiFuture<DocumentSnapshot> future = userMessageRef.get();
-            DocumentSnapshot document = future.get();
-
-            // Initialize an empty list to collect messages
-            List<Message> messages = new ArrayList<>();
-
-            if (document.exists() && document.contains("messages")) {
-                // Retrieve the messages map from Firestore
-                Map<String, List<Map<String, Object>>> messagesMap = (Map<String, List<Map<String, Object>>>) document.get("messages");
-
-                if (messagesMap != null && messagesMap.containsKey(contactId)) {
-                    // Retrieve the list of message maps for the specific contact
-                    List<Map<String, Object>> messageMaps = messagesMap.get(contactId);
-
-                    // Convert each message map to a Message object
-                    for (Map<String, Object> messageMap : messageMaps) {
-                        Message message = new Message();
-                        message.setId(((Number) messageMap.get("id")).intValue());
-                        message.setSender((String) messageMap.get("sender"));
-                        message.setContent((String) messageMap.get("content"));
-                        message.setTimestamp((String) messageMap.get("timestamp"));
-                        // Add the message to the list
-                        messages.add(message);
-                    }
-                }
-            }
-            return messages;
-
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException("Failed to get message conversation", e);
         }
     }
 

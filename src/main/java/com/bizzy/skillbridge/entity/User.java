@@ -24,6 +24,7 @@ public class User {
     private Date birthDay;
     private List<String> hobbies = new ArrayList<>();
     private String gender;
+    private String role="customer";
     
     private List<String> languagesSpoken = new ArrayList<>();
     private Map<String, List<Message>> messages = new HashMap<>();
@@ -41,6 +42,14 @@ public class User {
 
     public String getId() {
         return id;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public void setId(String id) {

@@ -1,0 +1,40 @@
+package com.bizzy.skillbridge.controller;
+
+import com.bizzy.skillbridge.service.FreelancerService;
+import com.bizzy.skillbridge.entity.Freelancer;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/freelancers")
+public class FreelancerController {
+
+    private final FreelancerService freelancerService;
+
+    @Autowired
+    public FreelancerController(FreelancerService freelancerService) {
+        this.freelancerService = freelancerService;
+    }
+
+    @PostMapping("/create")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Freelancer createFreelancerProfile(@RequestParam String uid, @RequestBody Freelancer freelancerDTO) {
+        return freelancerService.createFreelanceUser(uid, freelancerDTO);
+    }
+
+    @GetMapping("/{uid}")
+    @ResponseStatus(HttpStatus.OK)
+    public Freelancer getFreelancer(@PathVariable String uid) {
+        return freelancerService.getFreelancer(uid);
+    }
+
+    @GetMapping("/all")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Freelancer> getFreelancers() {
+        return freelancerService.getFreelancers();
+    }
+}
