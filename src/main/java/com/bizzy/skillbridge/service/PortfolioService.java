@@ -3,10 +3,7 @@ package com.bizzy.skillbridge.service;
 import com.bizzy.skillbridge.entity.Portfolio;
 import com.bizzy.skillbridge.entity.PortfolioItem;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,22 +11,25 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class PortfolioService {
 
     private final Firestore db;
+    private final ShareableLinkService shareableLinkService;
 
     @Autowired
-    public PortfolioService(Firestore db) {
+    public PortfolioService(Firestore db, ShareableLinkService shareableLinkService) {
         this.db = db;
+        this.shareableLinkService = shareableLinkService;
     }
 
     public Portfolio createPortfolio(String freelancerId) {
-        Portfolio portfolio = new Portfolio();
-        portfolio.setFreelancerId(freelancerId);
         DocumentReference newPortfolioRef = db.collection("portfolios").document();
+        Portfolio portfolio = new Portfolio();
         portfolio.setId(newPortfolioRef.getId());
+        portfolio.setFreelancerId(freelancerId);
         ApiFuture<WriteResult> result = newPortfolioRef.set(portfolio);
         try {
             result.get();
@@ -41,61 +41,80 @@ public class PortfolioService {
 
     public Portfolio getPortfolio(String portfolioId) {
         try {
-            DocumentSnapshot document = db.collection("portfolios").document(portfolioId).get().get();
+            DocumentReference portfolioRef = db.collection("portfolios").document(portfolioId);
+            ApiFuture<DocumentSnapshot> future = portfolioRef.get();
+            DocumentSnapshot document = future.get();
+
             if (document.exists()) {
                 return document.toObject(Portfolio.class);
             } else {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Portfolio not found");
             }
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Failed to get portfolio", e);
+            throw new RuntimeException("Failed to fetch portfolio", e);
         }
     }
 
-    public Portfolio addPortfolioItem(String portfolioId, PortfolioItem item) {
+    public PortfolioItem addPortfolioItem(String portfolioId, PortfolioItem portfolioItem) {
+        DocumentReference portfolioRef = db.collection("portfolios").document(portfolioId);
+        portfolioItem.setId(db.collection("portfolioItems").document().getId());
+        ApiFuture<WriteResult> result = portfolioRef.update("items", FieldValue.arrayUnion(portfolioItem));
         try {
-            Portfolio portfolio = getPortfolio(portfolioId);
-            item.setId(db.collection("portfolioItems").document().getId());
-            portfolio.getItems().add(item);
-            db.collection("portfolios").document(portfolioId).set(portfolio).get();
-            return portfolio;
+            result.get();
+            return portfolioItem;
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Failed to add item to portfolio", e);
+            throw new RuntimeException("Failed to add portfolio item", e);
         }
     }
 
-    public Portfolio updatePortfolioItem(String portfolioId, PortfolioItem item) {
+    public PortfolioItem updatePortfolioItem(String portfolioId, String itemId, PortfolioItem portfolioItem) {
+        DocumentReference portfolioRef = db.collection("portfolios").document(portfolioId);
+        ApiFuture<DocumentSnapshot> future = portfolioRef.get();
         try {
-            Portfolio portfolio = getPortfolio(portfolioId);
-            List<PortfolioItem> items = portfolio.getItems();
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i).getId().equals(item.getId())) {
-                    items.set(i, item);
-                    break;
+            DocumentSnapshot document = future.get();
+            if (document.exists()) {
+                Portfolio portfolio = document.toObject(Portfolio.class);
+                if (portfolio != null) {
+                    portfolioItem.setId(itemId);
+    
+                    List<PortfolioItem> items = portfolio.getItems().stream()
+                            .map(item -> item.getId().equals(itemId) ? portfolioItem : item)
+                            .collect(Collectors.toList());
+                    portfolio.setItems(items);
+                    portfolioRef.set(portfolio);
+                    return portfolioItem;
                 }
             }
-            db.collection("portfolios").document(portfolioId).set(portfolio).get();
-            return portfolio;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Portfolio not found");
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Failed to update item in portfolio", e);
+            throw new RuntimeException("Failed to update portfolio item", e);
         }
     }
+    
 
-    public Portfolio deletePortfolioItem(String portfolioId, String itemId) {
+    public void deletePortfolioItem(String portfolioId, String itemId) {
+        DocumentReference portfolioRef = db.collection("portfolios").document(portfolioId);
+        ApiFuture<DocumentSnapshot> future = portfolioRef.get();
         try {
-            Portfolio portfolio = getPortfolio(portfolioId);
-            List<PortfolioItem> items = portfolio.getItems();
-            items.removeIf(item -> item.getId().equals(itemId));
-            db.collection("portfolios").document(portfolioId).set(portfolio).get();
-            return portfolio;
+            DocumentSnapshot document = future.get();
+            if (document.exists()) {
+                Portfolio portfolio = document.toObject(Portfolio.class);
+                if (portfolio != null) {
+                    List<PortfolioItem> items = portfolio.getItems().stream()
+                            .filter(item -> !item.getId().equals(itemId))
+                            .collect(Collectors.toList());
+                    portfolio.setItems(items);
+                    portfolioRef.set(portfolio);
+                }
+            } else {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Portfolio not found");
+            }
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Failed to delete item from portfolio", e);
+            throw new RuntimeException("Failed to delete portfolio item", e);
         }
     }
 
     public String generateShareableLink(String portfolioId, String itemId) {
-        // Implement logic for generating a secure shareable link
-        // This is a placeholder implementation
-        return "https://example.com/portfolio/" + portfolioId + "/item/" + itemId;
+        return shareableLinkService.generateShareableLink(portfolioId, itemId);
     }
 }

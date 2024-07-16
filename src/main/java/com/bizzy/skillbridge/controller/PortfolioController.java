@@ -1,11 +1,11 @@
 package com.bizzy.skillbridge.controller;
 
-import com.bizzy.skillbridge.entity.Portfolio;
-import com.bizzy.skillbridge.entity.PortfolioItem;
-import com.bizzy.skillbridge.service.PortfolioService;
+import com.bizzy.skillbridge.entity.*;
+import com.bizzy.skillbridge.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/api/portfolios")
@@ -31,14 +31,13 @@ public class PortfolioController {
 
     @PostMapping("/{portfolioId}/items")
     @ResponseStatus(HttpStatus.CREATED)
-    public Portfolio addPortfolioItem(@PathVariable String portfolioId, @RequestBody PortfolioItem item) {
-        return portfolioService.addPortfolioItem(portfolioId, item);
+    public PortfolioItem addPortfolioItem(@PathVariable String portfolioId, @RequestBody PortfolioItem portfolioItem) {
+        return portfolioService.addPortfolioItem(portfolioId, portfolioItem);
     }
 
     @PutMapping("/{portfolioId}/items/{itemId}")
-    public Portfolio updatePortfolioItem(@PathVariable String portfolioId, @PathVariable String itemId, @RequestBody PortfolioItem item) {
-        item.setId(itemId);
-        return portfolioService.updatePortfolioItem(portfolioId, item);
+    public PortfolioItem updatePortfolioItem(@PathVariable String portfolioId, @PathVariable String itemId, @RequestBody PortfolioItem portfolioItem) {
+        return portfolioService.updatePortfolioItem(portfolioId, itemId, portfolioItem);
     }
 
     @DeleteMapping("/{portfolioId}/items/{itemId}")
@@ -52,3 +51,4 @@ public class PortfolioController {
         return portfolioService.generateShareableLink(portfolioId, itemId);
     }
 }
+
