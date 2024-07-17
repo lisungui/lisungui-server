@@ -63,12 +63,14 @@ sonarqube {
     }
 }
 
-// jacocoTestReport {
-// 	dependsOn test
-//     reports {
-//         xml.enabled true
-//     }
-// }
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.outputLocation.set(layout.buildDirectory.dir('jacocoHtml'))
+    }
+}
 
 
 test {
