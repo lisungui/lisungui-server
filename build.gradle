@@ -64,11 +64,11 @@ sonarqube {
 }
 
 jacocoTestReport {
-    dependsOn test
+    // dependsOn test
     reports {
-        xml.required.set(true)
-        csv.required.set(false)
-        html.outputLocation.set(layout.buildDirectory.dir('jacocoHtml'))
+		xml.required = true
+        // csv.required.set(false)
+        // html.outputLocation.set(layout.buildDirectory.dir('jacocoHtml'))
     }
 }
 
