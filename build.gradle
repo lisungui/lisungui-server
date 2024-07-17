@@ -47,10 +47,6 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
 compileJava {
     options.annotationProcessorPath = configurations.annotationProcessor
 }
@@ -66,7 +62,7 @@ sonarqube {
 jacocoTestReport {
     // dependsOn test
     reports {
-		xml.required = true
+		xml.required= true
         // csv.required.set(false)
         // html.outputLocation.set(layout.buildDirectory.dir('jacocoHtml'))
     }
