@@ -103,5 +103,5 @@ jobs:
           " || exit 0
 
       - name: Health Check
-        run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
+        run: curl -f http://${{ secrets.SSH_HOST }}:8081/ || exit 1
 
