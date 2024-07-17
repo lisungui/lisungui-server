@@ -15,7 +15,9 @@ public class WebConfig implements WebMvcConfigurer {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins(
-                            "https://lisungui.onrender.com"
+                            "http://lisungui-client.s3-website.eu-north-1.amazonaws.com",
+                            "https://lisungui.onrender.com",
+                            "http://localhost:3000"
                         )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
