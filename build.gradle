@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.0'
 	id 'io.spring.dependency-management' version '1.1.5'
+	id 'jacoco'
+    id "org.sonarqube" version "4.4.1.3373"
 }
 
 group = 'com.bizzy'
@@ -21,24 +23,28 @@ repositories {
 	mavenCentral()
 }
 
+
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-	implementation 'com.google.firebase:firebase-admin:7.2.0'
-	implementation 'org.mapstruct:mapstruct:1.4.2.Final'
-	implementation 'io.github.cdimascio:dotenv-java:2.2.0'
-	implementation 'com.auth0:java-jwt:4.4.0'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.mockito:mockito-junit-jupiter'
-
-
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	annotationProcessor 'org.projectlombok:lombok'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.4.2.Final'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'com.google.firebase:firebase-admin:7.2.0'
+    implementation 'org.mapstruct:mapstruct:1.4.2.Final'
+    implementation 'io.github.cdimascio:dotenv-java:2.2.0'
+    implementation 'com.auth0:java-jwt:4.4.0'
+    
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.4.2.Final'
+    
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.2'
+    testImplementation 'org.mockito:mockito-inline:4.0.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
@@ -48,3 +54,36 @@ tasks.named('test') {
 compileJava {
     options.annotationProcessorPath = configurations.annotationProcessor
 }
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "lisungui_lisungui-server"
+        property "sonar.organization", "lisungui"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
+
+// jacocoTestReport {
+// 	dependsOn test
+//     reports {
+//         xml.enabled true
+//     }
+// }
+
+
+test {
+    useJUnitPlatform()
+    testLogging.showStandardStreams = true
+    maxParallelForks = 1
+}
+
+File secretPropsFile = file('./local.properties')
+if (secretPropsFile.exists()) {
+    Properties p = new Properties()
+    p.load(new FileInputStream(secretPropsFile))
+    p.each { name, value ->
+        ext[name] = value
+    }
+}
+
+defaultTasks 'bootJar', 'build'
