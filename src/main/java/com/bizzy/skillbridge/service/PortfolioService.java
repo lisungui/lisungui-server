@@ -55,6 +55,23 @@ public class PortfolioService {
         }
     }
 
+    public Portfolio getPortfolioByFreelancerId(String freelancerId) {
+        try {
+            Query query = db.collection("portfolios").whereEqualTo("freelancerId", freelancerId);
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+    
+            if (!documents.isEmpty()) {
+                return documents.get(0).toObject(Portfolio.class);
+            } else {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Portfolio not found for the given freelancer");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Failed to fetch portfolio", e);
+        }
+    }
+    
+
     public PortfolioItem addPortfolioItem(String portfolioId, PortfolioItem portfolioItem) {
         DocumentReference portfolioRef = db.collection("portfolios").document(portfolioId);
         portfolioItem.setId(db.collection("portfolioItems").document().getId());

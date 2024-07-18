@@ -24,9 +24,14 @@ public class PortfolioController {
         return portfolioService.createPortfolio(freelancerId);
     }
 
-    @GetMapping("/{portfolioId}")
-    public Portfolio getPortfolio(@PathVariable String portfolioId) {
-        return portfolioService.getPortfolio(portfolioId);
+    // @GetMapping("/{portfolioId}")
+    // public Portfolio getPortfolio(@PathVariable String portfolioId) {
+    //     return portfolioService.getPortfolio(portfolioId);
+    // }
+
+    @GetMapping("/{freelancerId}")
+    public Portfolio getPortfolioByFreelancerId(@PathVariable String freelancerId) {
+        return portfolioService. getPortfolioByFreelancerId(freelancerId);
     }
 
     @PostMapping("/{portfolioId}/items")
