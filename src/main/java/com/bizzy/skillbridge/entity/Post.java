@@ -1,5 +1,6 @@
 package com.bizzy.skillbridge.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Post {
@@ -11,7 +12,7 @@ public class Post {
     private List<String> commentIds;
     private List<String> upVoteIds;
     private List<String> downVoteIds;
-    private List<String> postReplies;
+    private List<String> postReplies= new ArrayList<>();
     private String timestamp;
 
     // Getters and Setters
