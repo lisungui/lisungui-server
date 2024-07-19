@@ -1,7 +1,7 @@
 package com.bizzy.skillbridge.controller;
 
-import com.bizzy.skillbridge.service.FreelancerService;
 import com.bizzy.skillbridge.entity.Freelancer;
+import com.bizzy.skillbridge.service.FreelancerService;
 
 import java.util.List;
 
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/freelancers")
+@CrossOrigin(origins = "http://lisungui-client.s3-website.eu-north-1.amazonaws.com") // Add your frontend domain here
 public class FreelancerController {
 
     private final FreelancerService freelancerService;

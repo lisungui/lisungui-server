@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/forum")
+@CrossOrigin(origins = "http://lisungui-client.s3-website.eu-north-1.amazonaws.com")
 public class ForumController {
 
     private final CategoryService categoryService;
