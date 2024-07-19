@@ -91,6 +91,12 @@ public class ForumController {
         return postService.downvotePost(postId, userId);
     }
 
+    @PostMapping("/posts/{postId}/reply")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Post replyToPost(@PathVariable String postId, @RequestBody Post replyPost) {
+        return postService.replyToPost(postId, replyPost);
+    }
+
     @PostMapping("/posts/{postId}/moderate")
     public void moderatePost(@PathVariable String postId, @RequestParam boolean isApproved) {
         postService.moderatePost(postId, isApproved);

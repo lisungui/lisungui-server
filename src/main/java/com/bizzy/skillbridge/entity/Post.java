@@ -11,6 +11,7 @@ public class Post {
     private List<String> commentIds;
     private List<String> upVoteIds;
     private List<String> downVoteIds;
+    private List<String> postReplies;
     private String timestamp;
 
     // Getters and Setters
@@ -18,7 +19,7 @@ public class Post {
     public Post() {
     }
 
-    public Post(String id, String categoryId, String userId, String title, String content, List<String> commentIds, List<String> upVoteIds, List<String> downVoteIds, String timestamp) {
+    public Post(String id, String categoryId, String userId, String title, String content, List<String> commentIds, List<String> upVoteIds, List<String> downVoteIds, List<String> postReplies, String timestamp) {
         this.id = id;
         this.categoryId = categoryId;
         this.userId = userId;
@@ -27,6 +28,7 @@ public class Post {
         this.commentIds = commentIds;
         this.upVoteIds = upVoteIds;
         this.downVoteIds = downVoteIds;
+        this.postReplies = postReplies;
         this.timestamp = timestamp;
     }
 
@@ -102,6 +104,14 @@ public class Post {
         this.downVoteIds = downVoteIds;
     }
 
+    public List<String> getPostReplies() {
+        return postReplies;
+    }
+
+    public void setPostReplies(List<String> postReplies) {
+        this.postReplies = postReplies;
+    }
+
     @Override
     public String toString() {
         return "Post{" +
@@ -113,6 +123,7 @@ public class Post {
                 ", commentIds=" + commentIds +
                 ", upVoteIds=" + upVoteIds +
                 ", downVoteIds=" + downVoteIds +
+                ", postReplies=" + postReplies +
                 ", timestamp='" + timestamp + '\'' +
                 '}';
     }

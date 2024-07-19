@@ -72,6 +72,20 @@ public class PostService {
         }
     }
 
+    public Post replyToPost(String postId, Post replyPost) {
+        DocumentReference replyPostRef = db.collection("posts").document();
+        replyPost.setId(replyPostRef.getId());
+        ApiFuture<WriteResult> result = replyPostRef.set(replyPost);
+        DocumentReference postRef = db.collection("posts").document(postId);
+        try {
+            result.get();
+            postRef.update("postReplies", FieldValue.arrayUnion(replyPost.getId())).get();
+            return postRef.get().get().toObject(Post.class);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Failed to reply to post", e);
+        }
+    }
+
     public Post getPost(String postId) {
         DocumentReference postRef = db.collection("posts").document(postId);
         ApiFuture<DocumentSnapshot> future = postRef.get();
