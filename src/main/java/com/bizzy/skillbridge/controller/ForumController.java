@@ -81,9 +81,14 @@ public class ForumController {
         postService.deletePost(id);
     }
 
-    @PostMapping("/posts/{postId}/like")
-    public Post likePost(@PathVariable String postId, @RequestParam String userId) {
-        return postService.likePost(postId, userId);
+    @PostMapping("/posts/{postId}/upvote")
+    public Post upvotePost(@PathVariable String postId, @RequestParam String userId) {
+        return postService.upvotePost(postId, userId);
+    }
+
+    @PostMapping("/posts/{postId}/downvote")
+    public Post downvotePost(@PathVariable String postId, @RequestParam String userId) {
+        return postService.downvotePost(postId, userId);
     }
 
     @PostMapping("/posts/{postId}/moderate")
@@ -117,16 +122,6 @@ public class ForumController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable String id) {
         commentService.deleteComment(id);
-    }
-
-    @PostMapping("/comments/{commentId}/like")
-    public Comment likeComment(@PathVariable String commentId, @RequestParam String userId) {
-        return commentService.likeComment(commentId, userId);
-    }
-
-    @PostMapping("/comments/{commentId}/moderate")
-    public void moderateComment(@PathVariable String commentId, @RequestParam boolean isApproved) {
-        commentService.moderateComment(commentId, isApproved);
     }
 
     // Search Endpoint

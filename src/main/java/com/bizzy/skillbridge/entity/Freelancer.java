@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Freelancer extends User {
     private String summary;
+    private List<String> expertise = new ArrayList<>();
     private List<Skill> skills = new ArrayList<>();
     private List<String> interests = new ArrayList<>();
     private List<Language> languages = new ArrayList<>();
@@ -51,6 +52,14 @@ public class Freelancer extends User {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public List<String> getExpertise() {
+        return expertise;
+    }
+
+    public void setExpertise(List<String> expertise) {
+        this.expertise = expertise;
     }
 
     public List<Skill> getSkills() {

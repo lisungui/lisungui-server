@@ -8,8 +8,9 @@ public class Post {
     private String userId;
     private String title;
     private String content;
-    private List<String> commentIds; 
-    private List<String> likeIds;
+    private List<String> commentIds;
+    private List<String> upVoteIds;
+    private List<String> downVoteIds;
     private String timestamp;
 
     // Getters and Setters
@@ -17,14 +18,15 @@ public class Post {
     public Post() {
     }
 
-    public Post(String id, String categoryId, String userId, String title, String content, List<String> commentIds, List<String> likeIds, String timestamp) {
+    public Post(String id, String categoryId, String userId, String title, String content, List<String> commentIds, List<String> upVoteIds, List<String> downVoteIds, String timestamp) {
         this.id = id;
         this.categoryId = categoryId;
         this.userId = userId;
         this.title = title;
         this.content = content;
         this.commentIds = commentIds;
-        this.likeIds = likeIds;
+        this.upVoteIds = upVoteIds;
+        this.downVoteIds = downVoteIds;
         this.timestamp = timestamp;
     }
 
@@ -76,20 +78,28 @@ public class Post {
         this.commentIds = commentIds;
     }
 
-    public List<String> getLikeIds() {
-        return likeIds;
-    }
-
-    public void setLikeIds(List<String> likeIds) {
-        this.likeIds = likeIds;
-    }
-
     public String getTimestamp() {
         return timestamp;
     }
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public List<String> getUpVoteIds() {
+        return upVoteIds;
+    }
+
+    public void setUpVoteIds(List<String> upVoteIds) {
+        this.upVoteIds = upVoteIds;
+    }
+
+    public List<String> getDownVoteIds() {
+        return downVoteIds;
+    }
+
+    public void setDownVoteIds(List<String> downVoteIds) {
+        this.downVoteIds = downVoteIds;
     }
 
     @Override
@@ -101,7 +111,8 @@ public class Post {
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 ", commentIds=" + commentIds +
-                ", likeIds=" + likeIds +
+                ", upVoteIds=" + upVoteIds +
+                ", downVoteIds=" + downVoteIds +
                 ", timestamp='" + timestamp + '\'' +
                 '}';
     }

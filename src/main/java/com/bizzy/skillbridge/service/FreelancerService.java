@@ -41,6 +41,7 @@ public class FreelancerService {
             // Create a new Freelancer instance using the DTO
             Freelancer freelancer = new Freelancer(userRecord);
             freelancer.setSummary(freelancerDTO.getSummary());
+            freelancer.setExpertise(freelancerDTO.getExpertise());
             freelancer.setSkills(freelancerDTO.getSkills());
             freelancer.setInterests(freelancerDTO.getInterests());
             freelancer.setLanguages(freelancerDTO.getLanguages());

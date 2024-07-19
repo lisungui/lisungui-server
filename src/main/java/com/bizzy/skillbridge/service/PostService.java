@@ -32,15 +32,43 @@ public class PostService {
         }
     }
 
-    public Post likePost(String postId, String userId) {
+    public Post upvotePost(String postId, String userId) {
         DocumentReference postRef = db.collection("posts").document(postId);
-        ApiFuture<WriteResult> result = postRef.update("likeIds", FieldValue.arrayUnion(userId));
         try {
-            result.get();
+            // Remove userId from downVoteIds if present
+            postRef.update("downVoteIds", FieldValue.arrayRemove(userId)).get();
+            
+            // Toggle upvote
             DocumentSnapshot snapshot = postRef.get().get();
-            return snapshot.toObject(Post.class);
+            Post post = snapshot.toObject(Post.class);
+            if (post.getUpVoteIds().contains(userId)) {
+                postRef.update("upVoteIds", FieldValue.arrayRemove(userId)).get();
+            } else {
+                postRef.update("upVoteIds", FieldValue.arrayUnion(userId)).get();
+            }
+            return postRef.get().get().toObject(Post.class);
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Failed to like post", e);
+            throw new RuntimeException("Failed to upvote post", e);
+        }
+    }
+
+    public Post downvotePost(String postId, String userId) {
+        DocumentReference postRef = db.collection("posts").document(postId);
+        try {
+            // Remove userId from upVoteIds if present
+            postRef.update("upVoteIds", FieldValue.arrayRemove(userId)).get();
+
+            // Toggle downvote
+            DocumentSnapshot snapshot = postRef.get().get();
+            Post post = snapshot.toObject(Post.class);
+            if (post.getDownVoteIds().contains(userId)) {
+                postRef.update("downVoteIds", FieldValue.arrayRemove(userId)).get();
+            } else {
+                postRef.update("downVoteIds", FieldValue.arrayUnion(userId)).get();
+            }
+            return postRef.get().get().toObject(Post.class);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Failed to downvote post", e);
         }
     }
 
