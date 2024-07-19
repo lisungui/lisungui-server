@@ -14,12 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins(
-                            "http://lisungui-client.s3-website.eu-north-1.amazonaws.com/"
-                            // "https://lisungui.onrender.com",
-                            // "http://localhost:3000",
-                            // "https://skillbridge-76a4c.firebaseapp.com"
-                        )
+                        .allowedOrigins("http://lisungui-client.s3-website.eu-north-1.amazonaws.com") // Your frontend domain
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
