@@ -93,6 +93,9 @@ jobs:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: ./build/libs/skillbridge-0.0.1-SNAPSHOT.jar
 
+      - name: Wait for the app to start
+        run: sleep 60
+
       - name: Health Check
         run: curl -f https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/ || exit 1
 
