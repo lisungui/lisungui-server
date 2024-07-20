@@ -67,7 +67,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'lisungui'
-          slot-name: 'Production'
+          # slot-name: 'Production'
           package: '*skillbridge-0.0.1-SNAPSHOT.jar'
 
 
