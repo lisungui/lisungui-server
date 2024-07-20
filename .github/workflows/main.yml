@@ -56,12 +56,6 @@ jobs:
 
       - name: Create .env file for Firestore Credentials
         run: echo "FIRESTORE_APPLICATION_CREDENTIALS=${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > .env
-          
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
-          
-      - name: Build with Gradle
-        run: ./gradlew clean bootJar
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
