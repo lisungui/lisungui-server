@@ -99,6 +99,7 @@ jobs:
           curl -f https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/ || exit 1
 
 
+
 # name: CI/CD Pipeline AWS EC2
 
 # on:
