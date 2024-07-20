@@ -30,7 +30,10 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew clean build
+        run: ./gradlew clean bootJar
+
+      - name: List build/libs directory
+        run: ls -al ./build/libs
 
   test:
     name: Tests
@@ -80,6 +83,9 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean bootJar
 
+      - name: List build/libs directory
+        run: ls -al ./build/libs
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
@@ -89,6 +95,7 @@ jobs:
 
       - name: Health Check
         run: curl -f https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/ || exit 1
+
 
 # name: CI/CD Pipeline AWS EC2
 
