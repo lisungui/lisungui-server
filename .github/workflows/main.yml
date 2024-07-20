@@ -1,4 +1,4 @@
-name: CI/CD Pipeline Azure App Service
+name: CI/CD Pipeline AWS EC2
 
 on:
   push:
@@ -32,13 +32,10 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build
 
-      - name: List build/libs directory
-        run: ls -al ./build/libs
-
   test:
     name: Tests
     runs-on: ubuntu-latest
-
+      
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
@@ -51,14 +48,15 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
-
+      
       - name: Test and analyze
         run: ./gradlew test jacocoTestReport sonar
         env:
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_LISUNGUI }}
 
   deploy:
-    name: Deploy to Azure App Service
+    name: Deploy to AWS EC2
     runs-on: ubuntu-latest
 
     steps:
@@ -80,27 +78,58 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: Write SSH key
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
+          chmod 600 lisungui_server_key.pem
+
+      - name: Ensure target directory exists
+        run: ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/app"
+
+      - name: Create Firestore credentials JSON file on the remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            echo ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_ENCODED }} | base64 --decode > /home/${{ secrets.SSH_USER }}/app/accountKey.json
+          "
+  
+      - name: Create .env file on the remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            echo 'FIRESTORE_APPLICATION_CREDENTIALS=/home/${{ secrets.SSH_USER }}/app/accountKey.json' > /home/${{ secrets.SSH_USER }}/app/.env
+          "
+
+      - name: Permission to startup.sh
+        run: chmod +x ./startup.sh
+
       - name: Build with Gradle
         run: ./gradlew clean bootJar
 
-      - name: List build/libs directory
-        run: ls -al ./build/libs
+      - name: Copy jar file to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*-SNAPSHOT.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-          package: ./build/libs/skillbridge-0.0.1-SNAPSHOT.jar
+      - name: Copy startup.sh to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./startup.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x /home/${{ secrets.SSH_USER }}/app/startup.sh"
+
+      - name: Deploy to EC2 instance
+        env:
+          FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            cd /home/${{ secrets.SSH_USER }}/app &&
+            nohup ./startup.sh > startup.log 2>&1 &
+          " || exit 0
 
       - name: Health Check
-        run: |
-          sleep 60
-          curl -f https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/ || exit 1
+        run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
 
 
-
-# name: CI/CD Pipeline AWS EC2
+# name: CI/CD Pipeline Azure App Service
 
 # on:
 #   push:
@@ -134,10 +163,13 @@ jobs:
 #       - name: Build with Gradle
 #         run: ./gradlew clean build
 
+#       - name: List build/libs directory
+#         run: ls -al ./build/libs
+
 #   test:
 #     name: Tests
 #     runs-on: ubuntu-latest
-      
+
 #     steps:
 #       - name: Checkout repository code
 #         uses: actions/checkout@v4
@@ -150,15 +182,14 @@ jobs:
 
 #       - name: Grant execute permission for gradlew
 #         run: chmod +x ./gradlew
-      
+
 #       - name: Test and analyze
 #         run: ./gradlew test jacocoTestReport sonar
 #         env:
-#           # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_LISUNGUI }}
 
 #   deploy:
-#     name: Deploy to AWS EC2
+#     name: Deploy to Azure App Service
 #     runs-on: ubuntu-latest
 
 #     steps:
@@ -180,53 +211,21 @@ jobs:
 #       - name: Grant execute permission for gradlew
 #         run: chmod +x ./gradlew
 
-#       - name: Write SSH key
-#         run: |
-#           echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
-#           chmod 600 lisungui_server_key.pem
-
-#       - name: Ensure target directory exists
-#         run: ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/app"
-
-#       - name: Create Firestore credentials JSON file on the remote server
-#         run: |
-#           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-#             echo ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_ENCODED }} | base64 --decode > /home/${{ secrets.SSH_USER }}/app/accountKey.json
-#           "
-  
-#       - name: Create .env file on the remote server
-#         run: |
-#           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-#             echo 'FIRESTORE_APPLICATION_CREDENTIALS=/home/${{ secrets.SSH_USER }}/app/accountKey.json' > /home/${{ secrets.SSH_USER }}/app/.env
-#           "
-
-#       - name: Permission to startup.sh
-#         run: chmod +x ./startup.sh
-
 #       - name: Build with Gradle
 #         run: ./gradlew clean bootJar
 
-#       - name: Copy jar file to EC2
-#         run: |
-#           scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*-SNAPSHOT.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+#       - name: List build/libs directory
+#         run: ls -al ./build/libs
 
-#       - name: Copy startup.sh to EC2
-#         run: |
-#           scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./startup.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
-#           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x /home/${{ secrets.SSH_USER }}/app/startup.sh"
-
-#       - name: Deploy to EC2 instance
-#         env:
-#           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
-#           SSH_KEY: ${{ secrets.SSH_KEY }}
-#           SSH_USER: ${{ secrets.SSH_USER }}
-#           SSH_HOST: ${{ secrets.SSH_HOST }}
-#         run: |
-#           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-#             cd /home/${{ secrets.SSH_USER }}/app &&
-#             nohup ./startup.sh > startup.log 2>&1 &
-#           " || exit 0
+#       - name: Deploy to Azure Web App
+#         uses: azure/webapps-deploy@v2
+#         with:
+#           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+#           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+#           package: ./build/libs/skillbridge-0.0.1-SNAPSHOT.jar
 
 #       - name: Health Check
-#         run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
+#         run: |
+#           sleep 60
+#           curl -f https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/ || exit 1
 
