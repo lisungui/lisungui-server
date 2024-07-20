@@ -55,6 +55,9 @@ jobs:
       - name: List downloaded artifacts for debugging
         run: ls -la
 
+      - name: Verify artifact path for deployment
+        run: ls -la ./build/libs/
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -69,5 +72,4 @@ jobs:
           app-name: 'lisungui'
           slot-name: 'Production'
           package: './build/libs/skillbridge-0.0.1-SNAPSHOT.jar'
-
           
