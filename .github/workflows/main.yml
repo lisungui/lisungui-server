@@ -47,8 +47,10 @@ jobs:
         env:
           FIRESTORE_APPLICATION_CREDENTIALS_J: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_J }}
 
-      - name: Display app.yaml content
-        run: cat app.yaml
+      - name: Display app.yaml content (excluding sensitive data)
+        run: |
+          sed '/FIRESTORE_APPLICATION_CREDENTIALS_J/d' app.yaml
+          echo "Sensitive data has been redacted."
 
       - name: Deploy to App Engine
         id: deploy

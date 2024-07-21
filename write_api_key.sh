@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script writes the API key to the app.yaml file in a specific format.
+# This script writes the service account JSON content to the app.yaml file in a specific format.
 
 # Check if the FIRESTORE_APPLICATION_CREDENTIALS_J environment variable is set
 if [ -z "$FIRESTORE_APPLICATION_CREDENTIALS_J" ]; then
@@ -17,23 +17,20 @@ if [ ! -f "$APP_YAML_PATH" ]; then
   touch "$APP_YAML_PATH"
 fi
 
-# Prepare the content to be written
-ENV_VAR_CONTENT="  FIRESTORE_APPLICATION_CREDENTIALS_J: \"$FIRESTORE_APPLICATION_CREDENTIALS_J\""
+# Escape double quotes for YAML
+SERVICE_ACCOUNT_JSON_ESCAPED=$(echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | sed 's/"/\\"/g')
+
+# Prepare the YAML content to be written
+YAML_CONTENT="  FIRESTORE_APPLICATION_CREDENTIALS_J: \"$SERVICE_ACCOUNT_JSON_ESCAPED\""
 
 # Write the content to the app.yaml, ensuring proper formatting
 if grep -q "env_variables:" "$APP_YAML_PATH"; then
   echo "Updating existing env_variables section."
-  if grep -q "FIRESTORE_APPLICATION_CREDENTIALS_J:" "$APP_YAML_PATH"; then
-    echo "Replacing existing FIRESTORE_APPLICATION_CREDENTIALS_J entry."
-    sed -i "s|FIRESTORE_APPLICATION_CREDENTIALS_J:.*|$ENV_VAR_CONTENT|" "$APP_YAML_PATH"
-  else
-    echo "Adding new FIRESTORE_APPLICATION_CREDENTIALS_J entry to existing env_variables section."
-    sed -i "/env_variables:/a\\
-$ENV_VAR_CONTENT" "$APP_YAML_PATH"
-  fi
+  sed -i "/env_variables:/a\\
+$YAML_CONTENT" "$APP_YAML_PATH"
 else
   echo "Adding new env_variables section."
-  echo -e "\nenv_variables:\n  ENV: 'prod'\n$ENV_VAR_CONTENT" >> "$APP_YAML_PATH"
+  echo -e "\nenv_variables:\n  ENV: 'prod'\n$YAML_CONTENT" >> "$APP_YAML_PATH"
 fi
 
-echo "API key has been written to $APP_YAML_PATH"
+echo "Service account JSON has been written to $APP_YAML_PATH"
