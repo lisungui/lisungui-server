@@ -25,7 +25,7 @@ if [ ! -f "$APP_YAML_PATH" ]; then
 fi
 
 # Escape quotes and handle new lines in JSON string for YAML compatibility
-SERVICE_ACCOUNT_JSON=$(echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+SERVICE_ACCOUNT_JSON=$(echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n    /g')
 
 # Prepare the YAML content to be written
 YAML_CONTENT="  FIRESTORE_APPLICATION_CREDENTIALS_J: |\n    $SERVICE_ACCOUNT_JSON"
