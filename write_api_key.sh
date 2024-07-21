@@ -17,12 +17,12 @@ if [ ! -f "$APP_YAML_PATH" ]; then
   touch "$APP_YAML_PATH"
 fi
 
-# Escape necessary characters in JSON for YAML compatibility
-# Handles escaping double quotes and new lines
-SERVICE_ACCOUNT_JSON_ESCAPED=$(echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+# Escape the JSON string for YAML inclusion
+# Since JSON is already well-formed for embedding as a literal block, no need for complex escaping
+SERVICE_ACCOUNT_JSON=$(echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | sed 's/"/\\"/g')
 
 # Prepare the YAML content to be written
-YAML_CONTENT="  FIRESTORE_APPLICATION_CREDENTIALS_J: \"$SERVICE_ACCOUNT_JSON_ESCAPED\""
+YAML_CONTENT="  FIRESTORE_APPLICATION_CREDENTIALS_J: |\n    ${SERVICE_ACCOUNT_JSON//\\/\\\\}"
 
 # Write the content to the app.yaml, ensuring proper formatting
 if grep -q "env_variables:" "$APP_YAML_PATH"; then
