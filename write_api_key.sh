@@ -17,8 +17,9 @@ if [ ! -f "$APP_YAML_PATH" ]; then
   touch "$APP_YAML_PATH"
 fi
 
-# Escape double quotes for YAML
-SERVICE_ACCOUNT_JSON_ESCAPED=$(echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | sed 's/"/\\"/g')
+# Escape necessary characters in JSON for YAML compatibility
+# Handles escaping double quotes and new lines
+SERVICE_ACCOUNT_JSON_ESCAPED=$(echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
 
 # Prepare the YAML content to be written
 YAML_CONTENT="  FIRESTORE_APPLICATION_CREDENTIALS_J: \"$SERVICE_ACCOUNT_JSON_ESCAPED\""
@@ -30,7 +31,7 @@ if grep -q "env_variables:" "$APP_YAML_PATH"; then
 $YAML_CONTENT" "$APP_YAML_PATH"
 else
   echo "Adding new env_variables section."
-  echo -e "\nenv_variables:\n  ENV: 'prod'\n$YAML_CONTENT" >> "$APP_YAML_PATH"
+  echo -e "\nenv_variables:\n$YAML_CONTENT" >> "$APP_YAML_PATH"
 fi
 
 echo "Service account JSON has been written to $APP_YAML_PATH"
