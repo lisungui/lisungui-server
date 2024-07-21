@@ -38,6 +38,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Set execute permission for the write_api_key.sh script
+        run: chmod +x ./write_api_key.sh
+
+      - name: Write API Key to app.yaml
+        run: ./write_api_key.sh
+        env:
+          FIRESTORE_APPLICATION_CREDENTIALS_J: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_J }}
+
       - name: Deploy to App Engine
         id: deploy
         uses: google-github-actions/deploy-appengine@v0.2.0

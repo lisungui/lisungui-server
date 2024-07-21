@@ -51,7 +51,7 @@ public class ConfigKey {
 
                 // Assuming the API key is under env_variables in the YAML structure
                 Map<String, String> envVariables = (Map<String, String>) yamlProps.get("env_variables");
-                apiKey = envVariables.get("DALL_E_API_KEY");
+                apiKey = envVariables.get("FIRESTORE_APPLICATION_CREDENTIALS_J");
             } catch (FileNotFoundException e) {
                 System.err.println("app.yaml file not found: " + e.getMessage());
             } catch (Exception e) {
