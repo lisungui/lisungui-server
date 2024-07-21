@@ -8,6 +8,12 @@ if [ -z "$FIRESTORE_APPLICATION_CREDENTIALS_J" ]; then
   exit 1
 fi
 
+# Validate that the FIRESTORE_APPLICATION_CREDENTIALS_J is in JSON format (starts with '{' and ends with '}')
+if ! echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | grep -q '^{.*}$'; then
+  echo "ERROR: FIRESTORE_APPLICATION_CREDENTIALS_J environment variable is not in valid JSON format."
+  exit 1
+fi
+
 # Path to the app.yaml file
 APP_YAML_PATH="./app.yaml"
 
@@ -36,3 +42,4 @@ else
 fi
 
 echo "Service account JSON has been written to $APP_YAML_PATH"
+
