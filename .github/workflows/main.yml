@@ -47,6 +47,9 @@ jobs:
         env:
           FIRESTORE_APPLICATION_CREDENTIALS_J: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_J }}
 
+      - name: Display app.yaml content
+        run: cat app.yaml
+
       - name: Deploy to App Engine
         id: deploy
         uses: google-github-actions/deploy-appengine@v0.2.0
@@ -57,6 +60,7 @@ jobs:
 
       - name: Test
         run: curl "${{ steps.deploy.outputs.url }}"
+
 
 
 
