@@ -18,7 +18,7 @@ if [ ! -f "$APP_YAML_PATH" ]; then
 fi
 
 # Prepare the content to be written
-ENV_VAR_CONTENT="  FIRESTORE_APPLICATION_CREDENTIALS_J: '$FIRESTORE_APPLICATION_CREDENTIALS_J'"
+ENV_VAR_CONTENT="  FIRESTORE_APPLICATION_CREDENTIALS_J: \"$FIRESTORE_APPLICATION_CREDENTIALS_J\""
 
 # Write the content to the app.yaml, ensuring proper formatting
 if grep -q "env_variables:" "$APP_YAML_PATH"; then
