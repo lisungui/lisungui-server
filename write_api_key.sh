@@ -12,6 +12,7 @@ fi
 if ! echo "$FIRESTORE_APPLICATION_CREDENTIALS_J" | grep -q '^{.*}$'; then
   echo "WARNING: FIRESTORE_APPLICATION_CREDENTIALS_J environment variable is not in valid JSON format. Formatting it now."
   FIRESTORE_APPLICATION_CREDENTIALS_J="{\"key\":\"${FIRESTORE_APPLICATION_CREDENTIALS_J}\"}"
+  echo "Formatted FIRESTORE_APPLICATION_CREDENTIALS_J: $FIRESTORE_APPLICATION_CREDENTIALS_J"
 fi
 
 # Path to the app.yaml file
