@@ -26,6 +26,7 @@ public class GigController {
 
     private final GigService gigService;
 
+    @Autowired
     public GigController(GigService gigService) {
         this.gigService = gigService;
     }
