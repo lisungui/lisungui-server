@@ -17,13 +17,12 @@ public class FirebaseConfig {
 
     @Bean
     public Firestore firestore() throws IOException {
-
         FirebaseOptions options;
-
-        // Check if running locally by looking for an environment variable or system property
         String environment = System.getenv("ENVIRONMENT");
-        if (environment.equals("LOCAL")) {
-            // Load credentials from Dotenv for local development
+
+        System.out.println("***************************************** Environment: " + environment);
+
+        if ("LOCAL".equals(environment)) {
             Dotenv dotenv = Dotenv.load();
             String firebaseConfigPath = dotenv.get("FIRESTORE_APPLICATION_CREDENTIALS");
             InputStream serviceAccount = new FileInputStream(firebaseConfigPath);
@@ -32,7 +31,6 @@ public class FirebaseConfig {
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
         } else {
-            // Use Application Default Credentials for GCP
             options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.getApplicationDefault())
                 .build();
