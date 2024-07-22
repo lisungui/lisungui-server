@@ -20,6 +20,7 @@ public class PortfolioController {
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
     public Portfolio createPortfolio(@RequestParam String freelancerId) {
         return portfolioService.createPortfolio(freelancerId);
     }
@@ -30,28 +31,36 @@ public class PortfolioController {
     // }
 
     @GetMapping("/{freelancerId}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public Portfolio getPortfolioByFreelancerId(@PathVariable String freelancerId) {
         return portfolioService. getPortfolioByFreelancerId(freelancerId);
     }
 
     @PostMapping("/{portfolioId}/items")
     @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
     public PortfolioItem addPortfolioItem(@PathVariable String portfolioId, @RequestBody PortfolioItem portfolioItem) {
         return portfolioService.addPortfolioItem(portfolioId, portfolioItem);
     }
 
     @PutMapping("/{portfolioId}/items/{itemId}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public PortfolioItem updatePortfolioItem(@PathVariable String portfolioId, @PathVariable String itemId, @RequestBody PortfolioItem portfolioItem) {
         return portfolioService.updatePortfolioItem(portfolioId, itemId, portfolioItem);
     }
 
     @DeleteMapping("/{portfolioId}/items/{itemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseBody
     public void deletePortfolioItem(@PathVariable String portfolioId, @PathVariable String itemId) {
         portfolioService.deletePortfolioItem(portfolioId, itemId);
     }
 
     @GetMapping("/{portfolioId}/items/{itemId}/share")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public String generateShareableLink(@PathVariable String portfolioId, @PathVariable String itemId) {
         return portfolioService.generateShareableLink(portfolioId, itemId);
     }

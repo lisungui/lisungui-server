@@ -28,11 +28,14 @@ public class ForumController {
     // Category Endpoints
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
     public Category createCategory(@RequestBody Category category) {
         return categoryService.createCategory(category);
     }
 
     @GetMapping("/categories/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public Category getCategory(@PathVariable String id) {
         return categoryService.getCategory(id);
     }
@@ -56,16 +59,21 @@ public class ForumController {
     // Post Endpoints
     @PostMapping("/posts")
     @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
     public Post createPost(@RequestBody Post post) {
         return postService.createPost(post);
     }
 
     @GetMapping("/posts/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public Post getPost(@PathVariable String id) {
         return postService.getPost(id);
     }
 
     @GetMapping("/posts")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public List<Post> getAllPosts() {
         return postService.getAllPosts();
     }

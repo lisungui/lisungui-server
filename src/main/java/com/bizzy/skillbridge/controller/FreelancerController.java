@@ -23,18 +23,21 @@ public class FreelancerController {
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
     public Freelancer createFreelancerProfile(@RequestParam String uid, @RequestBody Freelancer freelancerDTO) {
         return freelancerService.createFreelanceUser(uid, freelancerDTO);
     }
 
     @GetMapping("/{uid}")
     @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public Freelancer getFreelancer(@PathVariable String uid) {
         return freelancerService.getFreelancer(uid);
     }
 
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
     public List<Freelancer> getFreelancers() {
         return freelancerService.getFreelancers();
     }
