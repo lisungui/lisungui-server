@@ -22,19 +22,19 @@ public class FirebaseConfig {
 
         System.out.println("***************************************** Environment: " + environment);
 
-        if ("LOCAL".equals(environment)) {
-            Dotenv dotenv = Dotenv.load();
-            String firebaseConfigPath = dotenv.get("FIRESTORE_APPLICATION_CREDENTIALS");
-            InputStream serviceAccount = new FileInputStream(firebaseConfigPath);
+        // if ("LOCAL".equals(environment)) {
+        //     Dotenv dotenv = Dotenv.load();
+        //     String firebaseConfigPath = dotenv.get("FIRESTORE_APPLICATION_CREDENTIALS");
+        //     InputStream serviceAccount = new FileInputStream(firebaseConfigPath);
 
-            options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
-        } else {
+        //     options = new FirebaseOptions.Builder()
+        //         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+        //         .build();
+        // } else {
             options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.getApplicationDefault())
                 .build();
-        }
+        // }
 
         if (FirebaseApp.getApps().isEmpty()) {
             FirebaseApp.initializeApp(options);
