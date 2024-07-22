@@ -19,7 +19,12 @@ public class FirebaseConfig {
     public Firestore firestore() throws IOException {
         // Read the service account key JSON from an environment variable
         String serviceAccountKey = System.getenv("FIRESTORE_APPLICATION_CREDENTIALS_J");
-        
+
+        // Check if the environment variable is set
+        if (serviceAccountKey == null) {
+            throw new IllegalArgumentException("Environment variable FIRESTORE_APPLICATION_CREDENTIALS_J not set");
+        }
+
         // Create credentials using the service account key JSON
         GoogleCredentials credentials = GoogleCredentials.fromStream(
             new ByteArrayInputStream(serviceAccountKey.getBytes(StandardCharsets.UTF_8))
@@ -38,4 +43,5 @@ public class FirebaseConfig {
         return FirestoreClient.getFirestore();
     }
 }
+
 
