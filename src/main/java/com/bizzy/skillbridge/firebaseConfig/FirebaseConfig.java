@@ -18,11 +18,11 @@ public class FirebaseConfig {
     @Bean
     public Firestore firestore() throws IOException {
         // Read the service account key JSON from an environment variable
-        String serviceAccountKey = System.getenv("FIRESTORE_APPLICATION_CREDENTIALS_J");
+        String serviceAccountKey = System.getenv("FIRESTORE_APPLICATION_CREDENTIALS_JS");
 
         // Check if the environment variable is set
         if (serviceAccountKey == null) {
-            throw new IllegalArgumentException("Environment variable FIRESTORE_APPLICATION_CREDENTIALS_J not set");
+            throw new IllegalArgumentException("Environment variable FIRESTORE_APPLICATION_CREDENTIALS_JS not set");
         }
 
         // Create credentials using the service account key JSON

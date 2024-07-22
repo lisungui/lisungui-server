@@ -22,7 +22,7 @@ jobs:
           java-version: "17"
 
       - name: Write Firebase service account key
-        run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_J }}" > $GITHUB_WORKSPACE/lisungui-server-firebase-adminsdk-1imcn-64ca57203f.json
+        run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_JS }}" > $GITHUB_WORKSPACE/lisungui-server-firebase-adminsdk-1imcn-64ca57203f.json
 
       - name: Set up environment variables
         run: echo "FIREBASE_SERVICE_ACCOUNT_PATH=$GITHUB_WORKSPACE/lisungui-server-firebase-adminsdk-1imcn-64ca57203f.json" >> $GITHUB_ENV
