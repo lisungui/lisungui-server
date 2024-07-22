@@ -1,175 +1,175 @@
-name: Deploy Project to App Engine
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    name: Deploying to Google Cloud
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Write Firebase service account key
-        run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_JS }}" > $GITHUB_WORKSPACE/lisungui-server-firebase-adminsdk-1imcn-64ca57203f.json
-
-      - name: Set up environment variables
-        run: echo "FIREBASE_SERVICE_ACCOUNT_PATH=$GITHUB_WORKSPACE/lisungui-server-firebase-adminsdk-1imcn-64ca57203f.json" >> $GITHUB_ENV
-
-      - name: Deploy to App Engine
-        id: deploy
-        uses: google-github-actions/deploy-appengine@v0.2.0
-        with:
-          deliverables: app.yaml
-          version: v1
-          credentials: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
-
-      - name: Test
-        run: curl "${{ steps.deploy.outputs.url }}"
-
-
-
-
-# name: CI/CD Pipeline AWS EC2
+# name: Deploy Project to App Engine
 
 # on:
 #   push:
 #     branches:
 #       - main
+#   workflow_dispatch:
 
 # jobs:
-#   build:
-#     name: Build
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout repository code
-#         uses: actions/checkout@v2
-
-#       - name: Set up JDK 17
-#         uses: actions/setup-java@v3
-#         with:
-#           distribution: "temurin"
-#           java-version: "17"
-
-#       - name: Set up Gradle
-#         uses: gradle/gradle-build-action@v2
-
-#       - name: Create .env file for Firestore Credentials
-#         run: echo "FIRESTORE_APPLICATION_CREDENTIALS=${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > .env
-
-#       - name: Grant execute permission for gradlew
-#         run: chmod +x ./gradlew
-
-#       - name: Build with Gradle
-#         run: ./gradlew clean build
-
-#   test:
-#     name: Tests
-#     runs-on: ubuntu-latest
-      
-#     steps:
-#       - name: Checkout repository code
-#         uses: actions/checkout@v4
-
-#       - name: Install Java 17
-#         uses: actions/setup-java@v3
-#         with:
-#           distribution: "temurin"
-#           java-version: "17"
-
-#       - name: Grant execute permission for gradlew
-#         run: chmod +x ./gradlew
-      
-#       - name: Test and analyze
-#         run: ./gradlew test jacocoTestReport sonar
-#         env:
-#           # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_LISUNGUI }}
-
 #   deploy:
-#     name: Deploy to AWS EC2
+#     name: Deploying to Google Cloud
 #     runs-on: ubuntu-latest
 
 #     steps:
-#       - name: Checkout repository code
+#       - name: Checkout
 #         uses: actions/checkout@v2
 
-#       - name: Install Java 17
+#       - name: Set up Java
 #         uses: actions/setup-java@v3
 #         with:
 #           distribution: "temurin"
 #           java-version: "17"
 
-#       - name: Set up Gradle
-#         uses: gradle/gradle-build-action@v2
+#       - name: Write Firebase service account key
+#         run: echo "${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_JS }}" > $GITHUB_WORKSPACE/lisungui-server-firebase-adminsdk-1imcn-64ca57203f.json
 
-#       - name: Create .env file for Firestore Credentials
-#         run: echo "FIRESTORE_APPLICATION_CREDENTIALS=${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > .env
+#       - name: Set up environment variables
+#         run: echo "FIREBASE_SERVICE_ACCOUNT_PATH=$GITHUB_WORKSPACE/lisungui-server-firebase-adminsdk-1imcn-64ca57203f.json" >> $GITHUB_ENV
 
-#       - name: Grant execute permission for gradlew
-#         run: chmod +x ./gradlew
+#       - name: Deploy to App Engine
+#         id: deploy
+#         uses: google-github-actions/deploy-appengine@v0.2.0
+#         with:
+#           deliverables: app.yaml
+#           version: v1
+#           credentials: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
 
-#       - name: Write SSH key
-#         run: |
-#           echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
-#           chmod 600 lisungui_server_key.pem
+#       - name: Test
+#         run: curl "${{ steps.deploy.outputs.url }}"
 
-#       - name: Ensure target directory exists
-#         run: ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/app"
 
-#       - name: Create Firestore credentials JSON file on the remote server
-#         run: |
-#           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-#             echo ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_ENCODED }} | base64 --decode > /home/${{ secrets.SSH_USER }}/app/accountKey.json
-#           "
+
+
+name: CI/CD Pipeline AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Create .env file for Firestore Credentials
+        run: echo "FIRESTORE_APPLICATION_CREDENTIALS=${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > .env
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+      
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Install Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+      
+      - name: Test and analyze
+        run: ./gradlew test jacocoTestReport sonar
+        env:
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_LISUNGUI }}
+
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Install Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Create .env file for Firestore Credentials
+        run: echo "FIRESTORE_APPLICATION_CREDENTIALS=${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}" > .env
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Write SSH key
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
+          chmod 600 lisungui_server_key.pem
+
+      - name: Ensure target directory exists
+        run: ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/app"
+
+      - name: Create Firestore credentials JSON file on the remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            echo ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS_ENCODED }} | base64 --decode > /home/${{ secrets.SSH_USER }}/app/accountKey.json
+          "
   
-#       - name: Create .env file on the remote server
-#         run: |
-#           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-#             echo 'FIRESTORE_APPLICATION_CREDENTIALS=/home/${{ secrets.SSH_USER }}/app/accountKey.json' > /home/${{ secrets.SSH_USER }}/app/.env
-#           "
+      - name: Create .env file on the remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            echo 'FIRESTORE_APPLICATION_CREDENTIALS=/home/${{ secrets.SSH_USER }}/app/accountKey.json' > /home/${{ secrets.SSH_USER }}/app/.env
+          "
 
-#       - name: Permission to startup.sh
-#         run: chmod +x ./startup.sh
+      - name: Permission to startup.sh
+        run: chmod +x ./startup.sh
 
-#       - name: Build with Gradle
-#         run: ./gradlew clean bootJar
+      - name: Build with Gradle
+        run: ./gradlew clean bootJar
 
-#       - name: Copy jar file to EC2
-#         run: |
-#           scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*-SNAPSHOT.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+      - name: Copy jar file to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./build/libs/*-SNAPSHOT.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
 
-#       - name: Copy startup.sh to EC2
-#         run: |
-#           scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./startup.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
-#           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x /home/${{ secrets.SSH_USER }}/app/startup.sh"
+      - name: Copy startup.sh to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./startup.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app/
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x /home/${{ secrets.SSH_USER }}/app/startup.sh"
 
-#       - name: Deploy to EC2 instance
-#         env:
-#           FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
-#           SSH_KEY: ${{ secrets.SSH_KEY }}
-#           SSH_USER: ${{ secrets.SSH_USER }}
-#           SSH_HOST: ${{ secrets.SSH_HOST }}
-#         run: |
-#           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-#             cd /home/${{ secrets.SSH_USER }}/app &&
-#             nohup ./startup.sh > startup.log 2>&1 &
-#           " || exit 0
+      - name: Deploy to EC2 instance
+        env:
+          FIRESTORE_APPLICATION_CREDENTIALS: ${{ secrets.FIRESTORE_APPLICATION_CREDENTIALS }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            cd /home/${{ secrets.SSH_USER }}/app &&
+            nohup ./startup.sh > startup.log 2>&1 &
+          " || exit 0
 
-#       - name: Health Check
-#         run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
+      - name: Health Check
+        run: curl -f http://${{ secrets.SSH_HOST }}:8080/ || exit 1
 
 
 # name: CI/CD Pipeline Azure App Service

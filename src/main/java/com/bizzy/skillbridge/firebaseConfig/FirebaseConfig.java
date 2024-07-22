@@ -5,43 +5,33 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
+import io.github.cdimascio.dotenv.Dotenv;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class FirebaseConfig {
-
+    
     @Bean
     public Firestore firestore() throws IOException {
-        // Read the service account key JSON from an environment variable
-        String serviceAccountKey = System.getenv("FIRESTORE_APPLICATION_CREDENTIALS_JS");
+        
+        Dotenv dotenv = Dotenv.load();
+        String firebaseConfigPath = dotenv.get("FIRESTORE_APPLICATION_CREDENTIALS");
 
-        // Check if the environment variable is set
-        if (serviceAccountKey == null) {
-            throw new IllegalArgumentException("Environment variable FIRESTORE_APPLICATION_CREDENTIALS_JS not set");
-        }
-
-        // Create credentials using the service account key JSON
-        GoogleCredentials credentials = GoogleCredentials.fromStream(
-            new ByteArrayInputStream(serviceAccountKey.getBytes(StandardCharsets.UTF_8))
-        );
-
-        // Initialize Firebase options
+        InputStream serviceAccount = new FileInputStream(firebaseConfigPath);
+        
         FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(credentials)
-                .build();
+            .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+            .build();
 
-        // Initialize Firebase app if not already initialized
-        if (FirebaseApp.getApps().isEmpty()) {
-            FirebaseApp.initializeApp(options);
-        }
-
+            if (FirebaseApp.getApps().isEmpty()) { // check with existing apps are already initialized
+                FirebaseApp.initializeApp(options);
+                }
         return FirestoreClient.getFirestore();
     }
 }
-
-

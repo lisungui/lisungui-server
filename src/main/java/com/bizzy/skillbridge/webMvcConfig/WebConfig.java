@@ -14,10 +14,11 @@ public class WebConfig implements WebMvcConfigurer {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://lisungui-client.s3-website.eu-north-1.amazonaws.com",
-                                "https://lemon-smoke-0d0925a0f.5.azurestaticapps.net",
-                                // "http://localhost:3000",
-                                "https://lisungui.onrender.com")
+                        .allowedOrigins("http://lisungui-client.s3-website.eu-north-1.amazonaws.com"
+                                // "https://lemon-smoke-0d0925a0f.5.azurestaticapps.net",
+                                // // "http://localhost:3000",
+                                // "https://lisungui.onrender.com"
+                                )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
