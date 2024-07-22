@@ -5,25 +5,32 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
-import io.github.cdimascio.dotenv.Dotenv;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class FirebaseConfig {
 
     @Bean
     public Firestore firestore() throws IOException {
-        // Load environment variables from .env file if present
-        Dotenv dotenv = Dotenv.load();
+        // Read the service account key JSON from an environment variable
+        String serviceAccountKey = System.getenv("FIRESTORE_APPLICATION_CREDENTIALS_J");
         
+        // Create credentials using the service account key JSON
+        GoogleCredentials credentials = GoogleCredentials.fromStream(
+            new ByteArrayInputStream(serviceAccountKey.getBytes(StandardCharsets.UTF_8))
+        );
+
+        // Initialize Firebase options
         FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.getApplicationDefault())
+                .setCredentials(credentials)
                 .build();
 
+        // Initialize Firebase app if not already initialized
         if (FirebaseApp.getApps().isEmpty()) {
             FirebaseApp.initializeApp(options);
         }
@@ -31,3 +38,4 @@ public class FirebaseConfig {
         return FirestoreClient.getFirestore();
     }
 }
+
